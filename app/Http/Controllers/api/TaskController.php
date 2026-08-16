@@ -742,6 +742,85 @@ class TaskController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get all tasks that the current manager assigned to their team members,
+     * grouped by status for Kanban view.
+     */
+    public function managerAssignedTasks(Request $request): JsonResponse
+    {
+        try {
+            $userId = $request->user()->id;
+
+            // 1. Get all groups where user is manager
+            $groupIds = Group::where('manager_id', $userId)->pluck('id')->toArray();
+
+            if (empty($groupIds)) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [],
+                    'total' => 0,
+                    'message' => 'You are not a manager of any group.'
+                ]);
+            }
+
+            // 2. Build query: tasks from these groups
+            $tasksQuery = Task::with(['status', 'creator', 'assignee', 'taskAssignments.user', 'group'])
+                ->where(function ($q) use ($groupIds) {
+                    $q->whereIn('group_id', $groupIds)
+                        ->orWhereIn('assigned_group_id', $groupIds);
+                })
+                // 3. Only tasks assigned by THIS user (not any other manager)
+                ->where(function ($q) use ($userId) {
+                    // 3a. Tasks created by this user AND assigned to someone
+                    $q->where(function ($sub) use ($userId) {
+                        $sub->where('created_by', $userId)
+                            ->where(function ($inner) {
+                                $inner->whereNotNull('assigned_to')
+                                    ->orWhereHas('taskAssignments')
+                                    ->orWhereNotNull('assigned_group_id');
+                            });
+                    })
+                        // 3b. OR: Tasks where this user appears in assignment history as the assigner
+                        ->orWhereHas('assignmentHistories', function ($sub) use ($userId) {
+                        $sub->where('assigned_by', $userId)
+                            ->where('action', 'assigned');
+                    });
+                })
+                // 4. Exclude archived tasks (optional, but recommended for Kanban)
+                ->where('is_archived', false);
+
+            // 5. Sort for Kanban (by status position, then by task position)
+            $tasks = $tasksQuery
+                ->orderBy('status_id')
+                ->orderBy('position')
+                ->get();
+
+            // 6. Group by status name
+            $grouped = $tasks->groupBy(function ($task) {
+                return $task->status?->name ?? 'Unassigned';
+            });
+
+            $formatted = $grouped->map(fn($tasks) => TaskResource::collection($tasks));
+
+            return response()->json([
+                'success' => true,
+                'data' => $formatted,
+                'total' => $tasks->count(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch manager assigned tasks: ' . $e->getMessage(), [
+                'user_id' => $request->user()->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load tasks. Please try again later.'
+            ], 500);
+        }
+    }
+
+
     // public function updateTaskAssignmentStatus(Request $request, Task $task, int $assignmentId): JsonResponse
     // {
     //     $userId = $request->user()->id;
@@ -915,7 +994,7 @@ class TaskController extends Controller
                     'action' => $item->action,
                     'user' => $item->user?->name,
                     'assigned_by' => $item->assignedBy?->name,
-                    'changed_at' => $item->assigned_at, 
+                    'changed_at' => $item->assigned_at,
                 ]))
                 ->sortByDesc('changed_at')
                 ->values();
