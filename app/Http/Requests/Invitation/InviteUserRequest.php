@@ -34,7 +34,7 @@ class InviteUserRequest extends FormRequest
                 return;
             }
 
-            if (!$project->isOwner($user->id)) {
+            if (!$project->isOwner($user->id) && !$project->isManager($user->id)) {
                 $validator->errors()->add('project_id', 'You do not have permission to invite users to this project.');
                 return;
             }

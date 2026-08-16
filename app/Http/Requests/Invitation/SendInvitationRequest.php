@@ -11,18 +11,13 @@ class SendInvitationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $project = $this->route('project');
-
-        if (!$project instanceof Project) {
+        $project = Project::find($this->route('project'));
+        if (!$project) {
             return false;
         }
 
         $user = $this->user();
-        if (!$user) {
-            return false;
-        }
-
-        return $project->isOwner($user->id);
+        return $project->isOwner($user->id) || $project->isManager($user->id);
     }
 
     public function rules(): array

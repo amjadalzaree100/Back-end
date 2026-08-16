@@ -9,9 +9,13 @@ class ProcessJoinRequest extends FormRequest
     public function authorize(): bool
     {
         $project = $this->route('project');
-        return $project && $project->isOwner($this->user()->id);
-    }
+        if (!$project) {
+            return false;
+        }
 
+        $user = $this->user();
+        return $project->isOwner($user->id) || $project->isManager($user->id);
+    }
     public function rules(): array
     {
         return [
