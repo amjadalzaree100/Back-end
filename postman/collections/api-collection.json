@@ -2546,6 +2546,25 @@
             "name": "task-statuses",
             "item": [
                 {
+    "name": "get-statuses",
+    "request": {
+        "method": "GET",
+        "header": [
+            {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+            }
+        ],
+        "url": {
+            "raw": "{{baseURL}}/projects/{{projectId}}/statuses",
+            "host": ["{{baseURL}}"],
+            "path": ["projects", "{{projectId}}", "statuses"]
+        }
+    },
+    "response": []
+},
+                {
                     "name": "create-status",
                     "request": {
                         "method": "POST",

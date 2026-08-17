@@ -3,8 +3,8 @@
 namespace app\Http\Requests\Invitation;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\Project;
-use App\Models\User;
+use app\Models\Project;
+use app\Models\User;
 use Illuminate\Validation\Validator;
 
 class SendInvitationRequest extends FormRequest

@@ -269,9 +269,9 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
 
     // FCM device token routes
     Route::prefix('fcm')->group(function () {
-        Route::post('/register',   [FcmController::class, 'register'])->middleware('throttle:30,1');
+        Route::post('/register', [FcmController::class, 'register'])->middleware('throttle:30,1');
         Route::post('/unregister', [FcmController::class, 'unregister'])->middleware('throttle:30,1');
-        Route::get('/tokens',      [FcmController::class, 'index'])->middleware('throttle:60,1');
+        Route::get('/tokens', [FcmController::class, 'index'])->middleware('throttle:60,1');
     });
 });
 
@@ -334,6 +334,12 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'
         Route::post('/reorder', [TaskStatusController::class, 'reorder']);
         Route::put('/{taskStatus}', [TaskStatusController::class, 'update']);
         Route::delete('/{taskStatus}', [TaskStatusController::class, 'destroy']);
+    });
+});
+
+Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
+    Route::prefix('projects/{project}/statuses')->group(function () {
+        Route::get('/', [TaskStatusController::class, 'index']);
     });
 });
 
