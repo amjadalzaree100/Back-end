@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Controllers\api;
+namespace App\Http\Controllers\api;
 
 use App\Events\InvitationNotificationEvent;
 use App\Http\Controllers\Controller;
@@ -14,7 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use app\Http\Requests\Invitation\InviteUserRequest;
+use App\Http\Requests\Invitation\InviteUserRequest;
 use App\Models\Profile;
 
 

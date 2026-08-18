@@ -16,7 +16,7 @@ use Tests\TestCase;
  * Pusher -> FCM migration review.
  *
  * Background: app/Events/NotificationSent.php originally declared
- * `namespace app\Events;` (lowercase a). EventServiceProvider registered
+ * `namespace App\Events;` (lowercase a). EventServiceProvider registered
  * listeners under `\App\Events\NotificationSent::class`, which resolves to
  * the string 'App\Events\NotificationSent' (capital A). Laravel's event
  * dispatcher keys listeners by that string and looks them up by

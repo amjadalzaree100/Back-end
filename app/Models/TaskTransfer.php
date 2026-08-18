@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use app\Models\Project;
-use app\Models\Task;
-use app\Models\User;
+use App\Models\Project;
+use App\Models\Task;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

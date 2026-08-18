@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Listeners;
+namespace App\Listeners;
 
 use App\Events\TaskCompleted;
 use App\Models\User;

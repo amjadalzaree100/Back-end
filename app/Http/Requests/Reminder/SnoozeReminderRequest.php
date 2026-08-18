@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Requests\Reminder;
+namespace App\Http\Requests\Reminder;
 
 use Illuminate\Foundation\Http\FormRequest;
 

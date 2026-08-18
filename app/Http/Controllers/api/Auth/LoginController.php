@@ -1,12 +1,12 @@
 <?php
 
-namespace app\Http\Controllers\api\Auth;
+namespace App\Http\Controllers\api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\api\Auth\LoginRequest;
 use App\Http\Traits\ApiResponseTrait;
 use App\Services\AuthService;
-use app\Services\VerificationCodeService;
+use App\Services\VerificationCodeService;
 use Illuminate\Http\Request;
 
 class LoginController extends Controller

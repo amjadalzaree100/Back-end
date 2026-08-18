@@ -1,8 +1,8 @@
 <?php
 
-namespace app\Http\Controllers\api;
+namespace App\Http\Controllers\api;
 
-use app\Http\Controllers\Controller;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Group\AddGroupMemberRequest;
 use App\Http\Requests\Group\SetGroupManagerRequest;
 use App\Http\Requests\Group\TransferManagerRequest;
