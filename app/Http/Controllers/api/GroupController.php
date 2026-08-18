@@ -87,45 +87,52 @@ class GroupController extends Controller
     {
         try {
             $userId = $request->user()->id;
+            $managerId = $request->manager_id;
 
-            // Verify manager is a member of the project
-            if (!$project->hasUser($request->manager_id)) {
+            // Ensure manager is a project member
+            if (!$project->hasUser($managerId)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'The selected manager must be a member of this project first.'
+                    'message' => 'The selected manager must be a member of this project.'
                 ], 422);
             }
 
-            $invalidMembers = [];
-            foreach ($request->member_ids as $memberId) {
-                if (!$project->hasUser($memberId)) {
-                    $invalidMembers[] = $memberId;
+            // Validate additional members (if provided)
+            $memberIds = $request->input('member_ids', []);
+            if (!empty($memberIds)) {
+                $invalidMembers = array_filter($memberIds, fn($id) => !$project->hasUser($id));
+                if (!empty($invalidMembers)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Some users are not members of this project: ' . implode(', ', $invalidMembers)
+                    ], 422);
                 }
-            }
-
-            if (!empty($invalidMembers)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Some users are not members of this project: ' . implode(', ', $invalidMembers)
-                ], 422);
             }
 
             DB::beginTransaction();
 
+            // Create group
             $group = Group::create([
                 'project_id' => $project->id,
                 'name' => $request->name,
                 'description' => $request->description,
                 'avatar' => $request->avatar,
-                'manager_id' => $request->manager_id,
+                'manager_id' => $managerId,
                 'created_by' => $userId,
                 'is_active' => true,
             ]);
 
-            $group->addMember($request->manager_id, $userId);
+            // Add manager as member
+            $group->addMember($managerId, $userId);
 
-            foreach ($request->member_ids as $memberId) {
-                $group->addMember($memberId, $userId);
+            // Add additional members
+            if (!empty($memberIds)) {
+                foreach (array_unique($memberIds) as $memberId) {
+                    // Skip if already added (avoid duplicates)
+                    if ($memberId !== $managerId && !$group->isMember($memberId)) {
+                        $group->addMember($memberId, $userId);
+                    }
+                }
             }
 
             DB::commit();
@@ -134,24 +141,24 @@ class GroupController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Group created successfully',
+                'message' => 'Group created successfully.',
                 'data' => new GroupResource($group)
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to create group: ' . $e->getMessage(), [
+            Log::error('Group creation failed: ' . $e->getMessage(), [
                 'project_id' => $project->id,
                 'user_id' => $request->user()->id,
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create group. Please try again later.'
             ], 500);
         }
     }
-
     public function update(Request $request, Project $project, Group $group): JsonResponse
     {
         try {

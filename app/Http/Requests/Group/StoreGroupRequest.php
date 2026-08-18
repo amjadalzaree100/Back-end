@@ -24,7 +24,7 @@ class StoreGroupRequest extends FormRequest
             'description' => 'nullable|string|max:1000',
             'avatar' => 'nullable|string|max:255|url',
             'manager_id' => 'required|exists:users,id',
-            'member_ids' => 'required|array|min:1',
+            'member_ids' => 'nullable|array',
             'member_ids.*' => 'exists:users,id|different:manager_id',
         ];
     }
