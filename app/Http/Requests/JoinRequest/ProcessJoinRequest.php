@@ -19,8 +19,7 @@ class ProcessJoinRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'required|in:approved,rejected',
-            'role' => 'required_if:status,approved|in:user,manager,observer',
+            'role' => 'sometimes|in:user,manager,observer',
         ];
     }
 }
