@@ -30,74 +30,6 @@ use Illuminate\Validation\ValidationException;
 class TaskController extends Controller
 {
     /**
-     * Display a list of project tasks (only for project members).
-     */
-    public function index(Project $project, Request $request): JsonResponse
-    {
-        try {
-            // Only project members/owners can view tasks
-            $this->checkProjectAccess($project);
-
-            $assigneeId = $request->input('assignee_id');
-            $priority = $request->input('priority');
-            $search = $request->input('search');
-            $dueDateFrom = $request->input('due_date_from');
-            $dueDateTo = $request->input('due_date_to');
-            $dueDate = $request->input('due_date');
-
-            $allowedSorts = ['id', 'title', 'priority', 'due_date', 'position', 'created_at', 'updated_at'];
-            $sortBy = $request->input('sort_by', 'position');
-            if (!in_array($sortBy, $allowedSorts)) {
-                $sortBy = 'position';
-            }
-            $sortDirection = $request->input('sort_direction', 'asc');
-            if (!in_array($sortDirection, ['asc', 'desc'])) {
-                $sortDirection = 'asc';
-            }
-
-            if ($assigneeId && !$project->hasUser($assigneeId)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'The specified assignee is not a member of this project'
-                ], 422);
-            }
-
-            $tasksQuery = $project->tasks()
-                ->where('is_archived', false)
-                ->with(['status', 'creator', 'assignee', 'taskAssignments.user', 'subTasks'])
-                ->when($priority, fn($q) => $q->where('priority', $priority))
-                ->when($assigneeId, fn($q) => $q->byAssignee($assigneeId))
-                ->when($search, fn($q) => $q->where(function ($q) use ($search) {
-                    $q->where('title', 'LIKE', "%{$search}%")
-                        ->orWhere('description', 'LIKE', "%{$search}%");
-                }))
-                ->when($dueDate, fn($q) => $q->whereDate('due_date', $dueDate))
-                ->when($dueDateFrom, fn($q) => $q->whereDate('due_date', '>=', $dueDateFrom))
-                ->when($dueDateTo, fn($q) => $q->whereDate('due_date', '<=', $dueDateTo))
-                ->orderBy($sortBy, $sortDirection);
-
-            $tasks = $tasksQuery->limit(100)->get();
-            $tasks->loadMissing(['subTasks.status', 'subTasks.assignee', 'subTasks.taskAssignments']);
-
-            return response()->json([
-                'success' => true,
-                'data' => TaskResource::collection($tasks),
-                'total' => $tasks->count(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Fetching project tasks failed: ' . $e->getMessage(), [
-                'project_id' => $project->id,
-                'user_id' => $request->user()->id ?? null,
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to load tasks. Please try again later.'
-            ], 500);
-        }
-    }
-
-    /**
      * Create a new project task.
      * - If allow_subtasks = true → task becomes a parent task (cannot be assigned).
      * - Otherwise, normal assignable task.
@@ -1057,6 +989,73 @@ class TaskController extends Controller
             ], 500);
         }
     }
+    /**
+     * Get all assigned tasks (assigned to any project user) grouped by status for Kanban view.
+     */
+    public function getAssignedTasksKanban(Project $project, Request $request): JsonResponse
+    {
+        try {
+            $this->checkProjectAccess($project);
+
+            $tasks = $project->tasks()
+                ->where('is_archived', false)
+                ->where(function ($q) {
+                    $q->whereNotNull('assigned_to')
+                        ->orWhereNotNull('assigned_group_id')
+                        ->orWhereHas('assignees');
+                })
+                ->with([
+                    'status',
+                    'creator',
+                    'assignee',
+                    'taskAssignments.user',
+                    'assignedGroup',
+                    'group',
+                    'subTasks.status',
+                    'subTasks.assignee',
+                    'subTasks.taskAssignments',
+                ])
+                ->orderBy('position')
+                ->get();
+
+            $grouped = $tasks->groupBy(function ($task) {
+                return $task->status_id ?? 'no-status';
+            });
+
+            $kanban = $grouped->map(function ($tasks, $statusId) {
+                $status = $tasks->first()->status;
+
+                return [
+                    'status' => $status ? [
+                        'id' => $status->id,
+                        'name' => $status->name,
+                        'position' => $status->position,
+                    ] : null,
+                    'tasks' => TaskResource::collection($tasks),
+                    'tasks_count' => $tasks->count(),
+                ];
+            })->sortBy(function ($column) {
+                return $column['status']['position'] ?? 999;
+            })->values();
+
+            return response()->json([
+                'success' => true,
+                'data' => $kanban,
+                'total_tasks' => $tasks->count(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Fetching assigned tasks kanban failed: ' . $e->getMessage(), [
+                'project_id' => $project->id,
+                'user_id' => $request->user()->id ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load assigned tasks. Please try again later.'
+            ], 500);
+        }
+    }
+
     /**
      * Get all assigned tasks (tasks that have at least one assignee or assigned group).
      */

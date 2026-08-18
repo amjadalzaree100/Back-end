@@ -1873,7 +1873,7 @@
             "name": "tasks",
             "item": [
                 {
-                    "name": "get-tasks",
+                    "name": "get-assigned-tasks-kanban",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1883,11 +1883,11 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "GET list of tasks — no body. Optional query params: assignee_id, priority, search, due_date_from, due_date_to, due_date, sort_by [id,title,priority,due_date,position,created_at,updated_at], sort_direction [asc,desc].",
+                        "description": "GET all assigned tasks (assigned to any project user) grouped by status for Kanban view — no body. Returns data: [{ status: {id, name, position}, tasks: [...], tasks_count }], total_tasks.",
                         "url": {
-                            "raw": "{{baseURL}}/projects/{project}/tasks",
+                            "raw": "{{baseURL}}/projects/{project}/tasks/assigned-kanban",
                             "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "tasks"]
+                            "path": ["projects", "{project}", "tasks", "assigned-kanban"]
                         }
                     },
                     "response": []
