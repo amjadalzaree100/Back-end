@@ -246,6 +246,12 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     });
 });
 
+Route::get('/projects/{project}/tasks/{task}/transfer-history', [TaskController::class, 'transferHistory'])
+    ->middleware(['auth:sanctum', 'is.active', 'verified']);
+
+Route::post('/projects/{project}/tasks/{task}/transfer', [TaskController::class, 'transfer'])
+    ->middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked']);
+
 Route::get('/manager-kanban', [TaskController::class, 'managerAssignedTasks'])
     ->middleware(['auth:sanctum', 'is.active', 'verified']);
 
