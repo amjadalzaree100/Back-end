@@ -270,4 +270,19 @@ class GroupController extends Controller
             ], 500);
         }
     }
+    public function myManagedGroups(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        $groups = Group::with(['project', 'manager', 'creator', 'members'])
+            ->where('manager_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => GroupResource::collection($groups),
+            'total' => $groups->count(),
+        ]);
+    }
 }
