@@ -1101,7 +1101,7 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "POST approve join request. Body: status (REQUIRED) [approved,rejected], role (REQUIRED when status=approved) [user,manager,observer].",
+                        "description": "POST approve join request. Body: role (OPTIONAL) [user,manager,observer]. The status is determined by the endpoint; do NOT send a status field.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/join-requests/{joinRequest}/approve",
                             "host": ["{{baseURL}}"],
@@ -1115,7 +1115,7 @@
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"status\": \"approved\",\n    \"role\": \"user\"\n}",
+                            "raw": "{\n    \"role\": \"user\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1136,7 +1136,7 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "POST reject join request. Body: status (REQUIRED) [approved,rejected].",
+                        "description": "POST reject join request. The status is determined by the endpoint; no body is required.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/join-requests/{joinRequest}/reject",
                             "host": ["{{baseURL}}"],
@@ -1150,7 +1150,7 @@
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"status\": \"rejected\"\n}",
+                            "raw": "{}",
                             "options": {
                                 "raw": {
                                     "language": "json"
