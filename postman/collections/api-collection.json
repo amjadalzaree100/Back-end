@@ -25,6 +25,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST register a new user. Body: name (REQUIRED, string, max 100), username (REQUIRED, string, max 100, unique), email (REQUIRED, email, unique), password (REQUIRED, string, confirmed, strong password rules), password_confirmation (REQUIRED, must match password).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"username\": \"amjad\",\n    \"name\": \"amjad al-zaree\",\n    \"email\": \"osamadoage8@gmail.com\",\n    \"password\": \"12345678a#B\",\n    \"password_confirmation\": \"12345678a#B\"\n}",
@@ -53,6 +54,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST login. Body: login (REQUIRED, string — email or username), password (REQUIRED, string, min 6), remember (optional, boolean), device_name (optional, string, max 50).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"login\": \"osamadoage0@gmail.com\",\n    \"password\": \"12345678a#B\"\n}",
@@ -81,6 +83,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST verify email. Body: email (REQUIRED, email, must exist in users), code (REQUIRED, string, size 6).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"email\": \"osamadoage8@gmail.com\",\n    \"code\": \"103619\"\n}",
@@ -109,6 +112,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST resend the email verification code. Body: email (REQUIRED, email).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"email\": \"osamadoage0@gmail.com\"\n}",
@@ -137,6 +141,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST request a password reset code. Body: email (REQUIRED, email, must exist in users).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"email\": \"osamadoage0@gmail.com\"\n}",
@@ -165,9 +170,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST reset password. Body: email (REQUIRED, email, must exist in users), code (REQUIRED, string, size 6), password (REQUIRED, string, confirmed), password_confirmation (REQUIRED, must match password).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"email\": \"osamadoage0@gmail.com\",\n    \"password\": \"newpassword123#\",\n    \"password_confirmation\": \"newpassword123#\",\n    \"reset_code\": \"123456\"\n}",
+                            "raw": "{\n    \"email\": \"osamadoage0@gmail.com\",\n    \"code\": \"123456\",\n    \"password\": \"newpassword123#\",\n    \"password_confirmation\": \"newpassword123#\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -193,6 +199,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST logout the current device — no body.",
                         "url": {
                             "raw": "{{baseURL}}/logout",
                             "host": ["{{baseURL}}"],
@@ -212,6 +219,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET the current authenticated user — no body.",
                         "url": {
                             "raw": "{{baseURL}}/me",
                             "host": ["{{baseURL}}"],
@@ -231,6 +239,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET the email verification status of the current user — no body.",
                         "url": {
                             "raw": "{{baseURL}}/email-status",
                             "host": ["{{baseURL}}"],
@@ -250,6 +259,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST logout from all devices — no body.",
                         "url": {
                             "raw": "{{baseURL}}/logout-all",
                             "host": ["{{baseURL}}"],
@@ -269,6 +279,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of the current user's authenticated devices — no body.",
                         "url": {
                             "raw": "{{baseURL}}/devices",
                             "host": ["{{baseURL}}"],
@@ -288,6 +299,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE a device identified by {tokenId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/devices/{tokenId}",
                             "host": ["{{baseURL}}"],
@@ -307,6 +319,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST logout all other devices (keeping the current one) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/logout-other-devices",
                             "host": ["{{baseURL}}"],
@@ -331,6 +344,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET the current user's own profile — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-profile",
                             "host": ["{{baseURL}}"],
@@ -350,6 +364,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET a profile identified by {profile} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}",
                             "host": ["{{baseURL}}"],
@@ -369,9 +384,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update profile identified by {profile}. All fields optional: phone (string, max 20, unique), bio (string, max 1000), job_title (string, max 255), skills (optional, array of {name (string, max 100, required with skills), rating (optional, integer, 1-10)}), avatar (url, max 255), location (string, max 255), alternative_email (email, max 255), social urls (twitter_url, facebook_url, instagram_url, youtube_url, github_url, portfolio_url, linkedin_url — url, max 255; cv_url — max 255, no url rule), language [ar,en], theme [light,dark], is_public (boolean), allow_messages (boolean), allow_invitation_requests (boolean). NO name field.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"name\": \"John Doe Updated\",\n    \"bio\": \"Updated bio\"\n}",
+                            "raw": "{\n    \"bio\": \"Updated bio\",\n    \"job_title\": \"Backend Developer\",\n    \"location\": \"Amman, Jordan\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -397,6 +413,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PATCH update profile identified by {profile}. All fields optional: phone (string, max 20, unique), bio (string, max 1000), job_title (string, max 255), skills (optional, array of {name (string, max 100, required with skills), rating (optional, integer, 1-10)}), avatar (url, max 255), location (string, max 255), alternative_email (email, max 255), social urls (twitter_url, facebook_url, instagram_url, youtube_url, github_url, portfolio_url, linkedin_url — url, max 255; cv_url — max 255, no url rule), language [ar,en], theme [light,dark], is_public (boolean), allow_messages (boolean), allow_invitation_requests (boolean). NO name field.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}",
                             "host": ["{{baseURL}}"],
@@ -404,7 +421,7 @@
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"name\": \"John Doe Updated\",\n    \"bio\": \"Updated bio\"\n}",
+                            "raw": "{\n    \"bio\": \"Updated bio\",\n    \"job_title\": \"Backend Developer\",\n    \"location\": \"Amman, Jordan\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -425,6 +442,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET the skills of profile {profile} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/skills",
                             "host": ["{{baseURL}}"],
@@ -444,9 +462,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST add a skill to profile {profile}. Body: skill (REQUIRED, string, max 100), rating (optional, integer, 1-10, default 5).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"skill_name\": \"PHP\",\n    \"rating\": 4\n}",
+                            "raw": "{\n    \"skill\": \"PHP\",\n    \"rating\": 4\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -472,6 +491,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update the rating of a skill identified by {skill} in profile {profile}. Body: rating (REQUIRED, integer, 1-10).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"rating\": 5\n}",
@@ -505,6 +525,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE a skill identified by {skill} from profile {profile} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/skills/{skill}",
                             "host": ["{{baseURL}}"],
@@ -529,6 +550,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST block a user identified by {userId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/block/{userId}",
                             "host": ["{{baseURL}}"],
@@ -548,6 +570,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE unblock a user identified by {userId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/unblock/{userId}",
                             "host": ["{{baseURL}}"],
@@ -567,6 +590,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET the list of users blocked by the current user — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/blocked-users",
                             "host": ["{{baseURL}}"],
@@ -586,6 +610,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET whether the current user can message the owner of profile {profile} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/can-message",
                             "host": ["{{baseURL}}"],
@@ -605,6 +630,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET whether the current user can invite the owner of profile {profile} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/can-invite",
                             "host": ["{{baseURL}}"],
@@ -624,6 +650,16 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST invite user to a project. Body: project_id (REQUIRED, must exist in projects — required in the BODY even though {profile} is in the URL), role (optional) [user,observer], message (optional, nullable, string, max 500).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"project_id\": 1,\n    \"role\": \"user\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/invite",
                             "host": ["{{baseURL}}"],
@@ -648,6 +684,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET my pending tasks — no body. Optional query params: sort_by [due_date,created_at,priority,title], sort_direction [asc,desc].",
                         "url": {
                             "raw": "{{baseURL}}/my-tasks",
                             "host": ["{{baseURL}}"],
@@ -672,6 +709,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of reminders — no body.",
                         "url": {
                             "raw": "{{baseURL}}/reminders",
                             "host": ["{{baseURL}}"],
@@ -691,19 +729,20 @@
                                 "type": "text"
                             }
                         ],
-                        "url": {
-                            "raw": "{{baseURL}}/reminders",
-                            "host": ["{{baseURL}}"],
-                            "path": ["reminders"]
-                        },
+                        "description": "POST create reminder. Body: title (REQUIRED, string, max 255), message (optional, nullable, string, max 1000), remind_at (REQUIRED, date, must be after now), task_ids (optional, nullable, array of existing task ids).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"remind_at\": \"2026-05-24 10:00:00\",\n    \"title\": \"Reminder title\",\n    \"description\": \"Reminder description\"\n}",
+                            "raw": "{\n    \"title\": \"Reminder title\",\n    \"message\": \"Reminder description\",\n    \"remind_at\": \"2026-05-24 10:00:00\",\n    \"task_ids\": [1]\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
                                 }
                             }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/reminders",
+                            "host": ["{{baseURL}}"],
+                            "path": ["reminders"]
                         }
                     },
                     "response": []
@@ -719,19 +758,20 @@
                                 "type": "text"
                             }
                         ],
-                        "url": {
-                            "raw": "{{baseURL}}/reminders/{reminder}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["reminders", "{reminder}"]
-                        },
+                        "description": "PUT update reminder. All fields optional: title (string, max 255), message (nullable, string, max 1000), remind_at (date, must be after now), task_ids (nullable, array of existing task ids).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"title\": \"Updated reminder\",\n    \"remind_at\": \"2026-05-25 10:00:00\"\n}",
+                            "raw": "{\n    \"title\": \"Updated reminder\",\n    \"message\": \"Updated message\",\n    \"remind_at\": \"2026-05-25 10:00:00\",\n    \"task_ids\": [1]\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
                                 }
                             }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/reminders/{reminder}",
+                            "host": ["{{baseURL}}"],
+                            "path": ["reminders", "{reminder}"]
                         }
                     },
                     "response": []
@@ -747,6 +787,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE a reminder identified by {reminder} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/reminders/{reminder}",
                             "host": ["{{baseURL}}"],
@@ -766,6 +807,16 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST snooze a reminder identified by {reminder}. Body: new_remind_at (REQUIRED, date, must be after now).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"new_remind_at\": \"2026-05-26 10:00:00\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
                         "url": {
                             "raw": "{{baseURL}}/reminders/{reminder}/snooze",
                             "host": ["{{baseURL}}"],
@@ -785,6 +836,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST dismiss a reminder identified by {reminder} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/reminders/{reminder}/dismiss",
                             "host": ["{{baseURL}}"],
@@ -804,6 +856,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET reminders for a project identified by {project} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/reminders",
                             "host": ["{{baseURL}}"],
@@ -828,6 +881,16 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST toggle project reaction. Body: reaction_type (REQUIRED, string) [like,love,dislike]. KNOWN BUG: the backend enum rule contains a trailing space (in:like,love,dislike ), so 'dislike' currently fails validation server-side.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reaction_type\": \"like\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/reactions/toggle",
                             "host": ["{{baseURL}}"],
@@ -852,6 +915,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET project reactions — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/reactions",
                             "host": ["{{baseURL}}"],
@@ -876,6 +940,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of my invitations — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-invitations",
                             "host": ["{{baseURL}}"],
@@ -895,6 +960,16 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT accept invitation. Body: status (REQUIRED) [accepted,rejected]. The invitation is identified by {invitation} in the URL, but the FormRequest still requires status in the body.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"accepted\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
                         "url": {
                             "raw": "{{baseURL}}/invitations/{invitation}/accept",
                             "host": ["{{baseURL}}"],
@@ -914,6 +989,16 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT reject invitation. Body: status (REQUIRED) [accepted,rejected]. The invitation is identified by {invitation} in the URL, but the FormRequest still requires status in the body.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"rejected\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
                         "url": {
                             "raw": "{{baseURL}}/invitations/{invitation}/reject",
                             "host": ["{{baseURL}}"],
@@ -933,9 +1018,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST send invitation. Body: invitee_id (REQUIRED, must exist in users), message (optional, nullable, string, max 500), role (optional) [user,observer].",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"user_id\": 1\n}",
+                            "raw": "{\n    \"invitee_id\": 1,\n    \"role\": \"user\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -966,6 +1052,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST send join request. Body: message (optional, nullable, string, max 500).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"message\": \"I want to join this project\"\n}",
@@ -994,6 +1081,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of join requests — no body. Optional query params: per_page.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/join-requests",
                             "host": ["{{baseURL}}"],
@@ -1013,6 +1101,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST approve join request. Body: status (REQUIRED) [approved,rejected], role (REQUIRED when status=approved) [user,manager,observer].",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/join-requests/{joinRequest}/approve",
                             "host": ["{{baseURL}}"],
@@ -1026,7 +1115,7 @@
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"status\": \"approved\"\n}",
+                            "raw": "{\n    \"status\": \"approved\",\n    \"role\": \"user\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1047,6 +1136,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST reject join request. Body: status (REQUIRED) [approved,rejected].",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/join-requests/{joinRequest}/reject",
                             "host": ["{{baseURL}}"],
@@ -1086,6 +1176,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET project comments — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/comments",
                             "host": ["{{baseURL}}"],
@@ -1105,6 +1196,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create project comment. Body: content (REQUIRED, string, 1-5000 chars), parent_id (optional, nullable, must exist in project_comments).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"content\": \"This is a project comment\"\n}",
@@ -1133,6 +1225,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET single project comment — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/comments/{comment}",
                             "host": ["{{baseURL}}"],
@@ -1157,6 +1250,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update project comment. Body: content (REQUIRED, string, 1-5000 chars).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"content\": \"Updated project comment\"\n}",
@@ -1190,6 +1284,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE project comment — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/comments/{comment}",
                             "host": ["{{baseURL}}"],
@@ -1219,9 +1314,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create project report. Body: reported_project_id (REQUIRED, must exist in projects, must NOT be your own project), reason (REQUIRED, string, max 255), details (optional, nullable, string, max 1000).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"reason\": \"spam\",\n    \"description\": \"This project is spam\"\n}",
+                            "raw": "{\n    \"reported_project_id\": 3,\n    \"reason\": \"spam\",\n    \"details\": \"This project is spam\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1252,6 +1348,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET my note — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-note",
                             "host": ["{{baseURL}}"],
@@ -1271,6 +1368,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT write my note. All fields optional: title (string, max 255), content (nullable, string), color (nullable, string, max 7, hex like #RRGGBB). FLAG: backend NoteController type-hints a non-existent top-level StoreNoteRequest (latent bug in app/Http/Controllers/api/NoteController.php) — note validation is unreliable server-side.",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"content\": \"This is my note content\"\n}",
@@ -1299,6 +1397,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE (clear) my note — no body.",
                         "url": {
                             "raw": "{{baseURL}}/note",
                             "host": ["{{baseURL}}"],
@@ -1323,6 +1422,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of my projects — no body. Optional query params: search, role [owner,manager,user,observer], status [active,paused,completed], visibility [private,public], sort_by [created_at,name,updated_at,status], sort_direction [asc,desc].",
                         "url": {
                             "raw": "{{baseURL}}/my-projects",
                             "host": ["{{baseURL}}"],
@@ -1342,6 +1442,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET my active owned projects — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-active-projects",
                             "host": ["{{baseURL}}"],
@@ -1361,6 +1462,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create project. Body: name (REQUIRED, string, max 255), description (optional, nullable, max 5000), image (optional, nullable, string, url, max 255), status (optional) [active,paused,completed], visibility (optional) [private,public], start_date (optional, date), end_date (optional, date, after or equal start_date), allow_commit (optional, boolean), allow_reactions (optional, boolean), chain_id (optional, must exist in chains). Note: the controller also reads allow_join_requests (not in the request rules).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"name\": \"My New Project\",\n    \"description\": \"Project description\",\n    \"visibility\": \"private\"\n}",
@@ -1389,6 +1491,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET single project — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}",
                             "host": ["{{baseURL}}"],
@@ -1408,6 +1511,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update project. All fields optional (sometimes): name (string, max 255), description (optional, nullable, max 5000), image (optional, nullable, url, max 255), visibility (optional) [private,public], allow_join_requests (optional, boolean), status (optional) [active,paused,completed], allow_commit (optional, boolean), allow_reactions (optional, boolean).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"name\": \"Updated Project Name\",\n    \"description\": \"Updated description\"\n}",
@@ -1436,6 +1540,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE project (soft delete / move to trash) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}",
                             "host": ["{{baseURL}}"],
@@ -1455,6 +1560,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PATCH update project status. Body: status (REQUIRED) [active,paused,completed].",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"status\": \"active\"\n}",
@@ -1483,6 +1589,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PATCH update project visibility. Body: visibility (REQUIRED) [private,public].",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"visibility\": \"public\"\n}",
@@ -1511,6 +1618,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST restore project from trash — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/restore",
                             "host": ["{{baseURL}}"],
@@ -1530,6 +1638,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET trashed projects — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-projects/trash",
                             "host": ["{{baseURL}}"],
@@ -1549,6 +1658,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE project permanently (force delete) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/force-delete",
                             "host": ["{{baseURL}}"],
@@ -1568,6 +1678,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE permanently empty the projects trash — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-projects/empty-trash",
                             "host": ["{{baseURL}}"],
@@ -1587,6 +1698,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET project stats — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/stats",
                             "host": ["{{baseURL}}"],
@@ -1611,16 +1723,11 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET project users — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/projects/:id/users",
+                            "raw": "{{baseURL}}/projects/{project}/users",
                             "host": ["{{baseURL}}"],
-                            "path": ["projects", ":id", "users"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["projects", "{project}", "users"]
                         }
                     },
                     "response": []
@@ -1636,6 +1743,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST add user to project. Body: user_id (REQUIRED, must exist in users), role (REQUIRED) [manager,member,observer].",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"user_id\": 2,\n    \"role\": \"member\"\n}",
@@ -1646,15 +1754,9 @@
                             }
                         },
                         "url": {
-                            "raw": "{{baseURL}}/projects/:id/users",
+                            "raw": "{{baseURL}}/projects/{project}/users",
                             "host": ["{{baseURL}}"],
-                            "path": ["projects", ":id", "users"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["projects", "{project}", "users"]
                         }
                     },
                     "response": []
@@ -1670,6 +1772,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST leave project — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/users/leave",
                             "host": ["{{baseURL}}"],
@@ -1689,9 +1792,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update user role. Body: role (REQUIRED) [manager,member,observer].",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"role\": \"admin\"\n}",
+                            "raw": "{\n    \"role\": \"member\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1723,6 +1827,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE remove user from project — no body. The user to remove is identified by {userId} in the URL.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/users/{userId}",
                             "host": ["{{baseURL}}"],
@@ -1747,6 +1852,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST transfer project ownership — no body. The new owner is identified by {userId} in the URL.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/users/transfer-ownership/{userId}",
                             "host": ["{{baseURL}}"],
@@ -1777,22 +1883,17 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of tasks — no body. Optional query params: assignee_id, priority, search, due_date_from, due_date_to, due_date, sort_by [id,title,priority,due_date,position,created_at,updated_at], sort_direction [asc,desc].",
                         "url": {
-                            "raw": "{{baseURL}}/projects/:id/tasks",
+                            "raw": "{{baseURL}}/projects/{project}/tasks",
                             "host": ["{{baseURL}}"],
-                            "path": ["projects", ":id", "tasks"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["projects", "{project}", "tasks"]
                         }
                     },
                     "response": []
                 },
                 {
-                    "name": "create-task",
+                    "name": "create-task (assignable)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -1802,9 +1903,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create task (assignable variant). Body: title (required, string, max 255), description (optional, nullable, max 5000), priority (optional) [low,medium,high,urgent], due_date (optional, date >= today), status_id (optional, must exist in task_statuses), allow_subtasks (optional, boolean, default false), assigned_to (optional, must exist in users), assignees (optional, array of existing user ids).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"title\": \"New Task\",\n    \"description\": \"Task description\",\n    \"status_id\": 1\n}",
+                            "raw": "{\n    \"title\": \"New Task\",\n    \"description\": \"Task description\",\n    \"priority\": \"medium\",\n    \"due_date\": \"2026-08-20\",\n    \"status_id\": 1,\n    \"allow_subtasks\": false,\n    \"assigned_to\": 2,\n    \"assignees\": [2, 3]\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1812,15 +1914,38 @@
                             }
                         },
                         "url": {
-                            "raw": "{{baseURL}}/projects/:id/tasks",
+                            "raw": "{{baseURL}}/projects/{project}/tasks",
                             "host": ["{{baseURL}}"],
-                            "path": ["projects", ":id", "tasks"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
+                            "path": ["projects", "{project}", "tasks"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "create-task (parent - allows subtasks)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "POST create task (parent variant — allows subtasks). Body: title (required, string, max 255), description (optional, nullable, max 5000), priority (optional) [low,medium,high,urgent], due_date (optional, date >= today), status_id (optional, must exist in task_statuses), allow_subtasks (true — enables subtasks). assigned_to and assignees are PROHIBITED when allow_subtasks is true.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"Parent Task\",\n    \"description\": \"Parent task that allows subtasks\",\n    \"priority\": \"high\",\n    \"due_date\": \"2026-08-25\",\n    \"status_id\": 1,\n    \"allow_subtasks\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
                                 }
-                            ]
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/tasks",
+                            "host": ["{{baseURL}}"],
+                            "path": ["projects", "{project}", "tasks"]
                         }
                     },
                     "response": []
@@ -1836,6 +1961,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET single task — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}",
                             "host": ["{{baseURL}}"],
@@ -1855,9 +1981,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update task. All fields optional: title, description (optional), priority (optional) [low,medium,high,urgent], due_date (optional, date >= today), status_id (optional, must exist in task_statuses — validated but IGNORED by the controller), assigned_to (optional, must exist in users), position (optional, integer >= 0 — validated but REJECTED with 422 when changing status; use reorder-tasks instead), assignees (optional, array of existing user ids).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"title\": \"Updated Task\",\n    \"description\": \"Updated description\",\n    \"status_id\": 2\n}",
+                            "raw": "{\n    \"title\": \"Updated Task\",\n    \"description\": \"Updated description\",\n    \"priority\": \"high\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1883,9 +2010,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update task status. Body: status_id (required, must exist in task_statuses), position (optional, integer >= 0).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"status_id\": 3\n}",
+                            "raw": "{\n    \"status_id\": 3,\n    \"position\": 0\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1917,6 +2045,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE task (soft delete / move to trash) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}",
                             "host": ["{{baseURL}}"],
@@ -1936,9 +2065,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST reorder tasks. Body MUST BE: {\"tasks\":[{\"id\":1,\"position\":0,\"status_id\":1}]} — all three sub-fields required.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"task_ids\": [1, 2, 3]\n}",
+                            "raw": "{\n    \"tasks\": [\n        {\n            \"id\": 1,\n            \"position\": 0,\n            \"status_id\": 1\n        }\n    ]\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1959,7 +2089,7 @@
                     "response": []
                 },
                 {
-                    "name": "create-manager-task",
+                    "name": "create-manager-task (assignable)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -1969,9 +2099,45 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create manager task (assignable variant). Body: title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses), allow_subtasks (optional, boolean, default false), assigned_to (optional, must exist in users), assignees (optional, array of existing user ids).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"title\": \"Manager Task\",\n    \"description\": \"Task for group manager\"\n}",
+                            "raw": "{\n    \"title\": \"Manager Task\",\n    \"description\": \"Task for group manager\",\n    \"priority\": \"medium\",\n    \"due_date\": \"2026-08-20\",\n    \"status_id\": 1,\n    \"allow_subtasks\": false,\n    \"assigned_to\": 2,\n    \"assignees\": [2, 3]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/manager-tasks",
+                            "host": ["{{baseURL}}"],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "groups",
+                                "{group}",
+                                "manager-tasks"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "create-manager-task (parent - allows subtasks)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "POST create manager task (parent variant — allows subtasks). Body: title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses), allow_subtasks (true — enables subtasks). assigned_to and assignees are PROHIBITED when allow_subtasks is true.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"Manager Parent Task\",\n    \"description\": \"Parent task that allows subtasks\",\n    \"priority\": \"high\",\n    \"due_date\": \"2026-08-25\",\n    \"status_id\": 1,\n    \"allow_subtasks\": true\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2003,9 +2169,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create subtask. Body: title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses), assigned_to (REQUIRED, array min 1 of existing user ids).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"title\": \"Subtask\",\n    \"description\": \"Subtask of parent task\"\n}",
+                            "raw": "{\n    \"title\": \"Subtask\",\n    \"description\": \"Subtask of parent task\",\n    \"priority\": \"low\",\n    \"due_date\": \"2026-08-22\",\n    \"status_id\": 1,\n    \"assigned_to\": [2]\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2039,6 +2206,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET trashed tasks — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/trashed",
                             "host": ["{{baseURL}}"],
@@ -2063,6 +2231,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST restore task from trash — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/restore",
                             "host": ["{{baseURL}}"],
@@ -2088,6 +2257,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE task permanently — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/force-delete",
                             "host": ["{{baseURL}}"],
@@ -2113,6 +2283,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE permanently empty the tasks trash — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/empty-trash",
                             "host": ["{{baseURL}}"],
@@ -2137,6 +2308,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET completed tasks — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/completed",
                             "host": ["{{baseURL}}"],
@@ -2161,6 +2333,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET tasks assigned to the current user — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/assigned",
                             "host": ["{{baseURL}}"],
@@ -2185,6 +2358,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET unassigned tasks — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/unassigned",
                             "host": ["{{baseURL}}"],
@@ -2209,6 +2383,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create group task. Body: group_id (REQUIRED, must exist in groups), title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses).",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/group-tasks",
                             "host": ["{{baseURL}}"],
@@ -2216,7 +2391,7 @@
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"title\": \"Group Task\",\n    \"description\": \"Task assigned to a group\"\n}",
+                            "raw": "{\n    \"group_id\": 1,\n    \"title\": \"Group Task\",\n    \"description\": \"Task assigned to a group\",\n    \"priority\": \"medium\",\n    \"due_date\": \"2026-08-20\",\n    \"status_id\": 1\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2237,6 +2412,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET group tasks — no body. Optional query params: search, status_id, priority, sort_by, sort_direction.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/group-tasks",
                             "host": ["{{baseURL}}"],
@@ -2256,6 +2432,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET archived tasks — no body. Optional query params: search, sort_by, sort_direction.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/archived",
                             "host": ["{{baseURL}}"],
@@ -2265,6 +2442,52 @@
                                 "tasks",
                                 "archived"
                             ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get-task-history",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET task history — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/tasks/{task}/history",
+                            "host": ["{{baseURL}}"],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks",
+                                "{task}",
+                                "history"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get-manager-kanban",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET manager kanban (managerAssignedTasks) — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/manager-kanban",
+                            "host": ["{{baseURL}}"],
+                            "path": ["manager-kanban"]
                         }
                     },
                     "response": []
@@ -2285,6 +2508,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET task assignments — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/assignments",
                             "host": ["{{baseURL}}"],
@@ -2310,9 +2534,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST assign users to task. Body: user_ids (REQUIRED, array min 1 of existing user ids).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"user_ids\": [1]\n}",
+                            "raw": "{\n    \"user_ids\": [1, 2]\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2344,6 +2569,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE unassign user from task — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/assignments/{userId}",
                             "host": ["{{baseURL}}"],
@@ -2370,6 +2596,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET my assigned tasks — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-assigned-tasks",
                             "host": ["{{baseURL}}"],
@@ -2389,9 +2616,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DEAD ENDPOINT — route registered but TaskController::updateTaskAssignmentStatus is commented out in the backend; calling this returns an error. Body shown is illustrative/invented.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"status\": \"completed\"\n}",
+                            "raw": "{}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2430,6 +2658,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET task dependencies — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/dependencies",
                             "host": ["{{baseURL}}"],
@@ -2455,9 +2684,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST add task dependency. Body: depends_on_task_id (REQUIRED, must exist in tasks), type (optional) [FS,SS,FF,SF], default FS.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"depends_on_task_id\": 2,\n    \"type\": \"blocks\"\n}",
+                            "raw": "{\n    \"depends_on_task_id\": 2,\n    \"type\": \"FS\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2489,6 +2719,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE task dependency — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/dependencies/{dependsOnTaskId}",
                             "host": ["{{baseURL}}"],
@@ -2515,9 +2746,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update dependency type. Body MUST include depends_on_task_id (required, must exist in tasks — required by the request class even though it is also in the URL) plus type (optional) [FS,SS,FF,SF], default FS.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"type\": \"blocks\"\n}",
+                            "raw": "{\n    \"depends_on_task_id\": 2,\n    \"type\": \"FS\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2556,10 +2788,11 @@
                 "type": "text"
             }
         ],
+        "description": "GET task statuses — no body.",
         "url": {
-            "raw": "{{baseURL}}/projects/{{projectId}}/statuses",
+            "raw": "{{baseURL}}/projects/{project}/statuses",
             "host": ["{{baseURL}}"],
-            "path": ["projects", "{{projectId}}", "statuses"]
+            "path": ["projects", "{project}", "statuses"]
         }
     },
     "response": []
@@ -2575,9 +2808,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create task status. Body: name (REQUIRED, string, 2-100 chars). No other fields.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"name\": \"In Progress\",\n    \"color\": \"#FF5733\"\n}",
+                            "raw": "{\n    \"name\": \"In Progress\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2585,15 +2819,9 @@
                             }
                         },
                         "url": {
-                            "raw": "{{baseURL}}/projects/:id/statuses",
+                            "raw": "{{baseURL}}/projects/{project}/statuses",
                             "host": ["{{baseURL}}"],
-                            "path": ["projects", ":id", "statuses"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["projects", "{project}", "statuses"]
                         }
                     },
                     "response": []
@@ -2609,6 +2837,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create default statuses (To Do / In Progress / Done) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/statuses/default",
                             "host": ["{{baseURL}}"],
@@ -2633,9 +2862,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST reorder task statuses. Body MUST BE: {\"statuses\":[{\"id\":1,\"position\":0}]} — both sub-fields required, NO status_id sub-field.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"status_ids\": [1, 2, 3]\n}",
+                            "raw": "{\n    \"statuses\": [\n        {\n            \"id\": 1,\n            \"position\": 0\n        }\n    ]\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2666,9 +2896,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update task status. Body: name (REQUIRED, string, 2-100 chars). No other fields.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"name\": \"Updated Status\",\n    \"color\": \"#00FF00\"\n}",
+                            "raw": "{\n    \"name\": \"Updated Status\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2699,6 +2930,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE task status — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/statuses/{taskStatus}",
                             "host": ["{{baseURL}}"],
@@ -2846,9 +3078,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST send a test notification (not available in production). Body: message (REQUIRED, string), type (optional) [info,success,warning,error,urgent], default info.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"title\": \"Test\",\n    \"message\": \"Test message\"\n}",
+                            "raw": "{\n    \"message\": \"Test message\",\n    \"type\": \"info\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2874,6 +3107,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of the caller's notifications — no body.",
                         "url": {
                             "raw": "{{baseURL}}/notifications",
                             "host": ["{{baseURL}}"],
@@ -2893,16 +3127,11 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT mark a notification identified by {notification} as read — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/notifications/:id/read",
+                            "raw": "{{baseURL}}/notifications/{notification}/read",
                             "host": ["{{baseURL}}"],
-                            "path": ["notifications", ":id", "read"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["notifications", "{notification}", "read"]
                         }
                     },
                     "response": []
@@ -2918,6 +3147,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT mark all of the caller's notifications as read — no body.",
                         "url": {
                             "raw": "{{baseURL}}/notifications/read-all",
                             "host": ["{{baseURL}}"],
@@ -2937,16 +3167,11 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE a notification identified by {notification} — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/notifications/:id",
+                            "raw": "{{baseURL}}/notifications/{notification}",
                             "host": ["{{baseURL}}"],
-                            "path": ["notifications", ":id"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["notifications", "{notification}"]
                         }
                     },
                     "response": []
@@ -2967,9 +3192,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST register an FCM device token. Body: token (REQUIRED, string, max 500), device_type (optional) [android,ios,web], max 50, device_name (optional, string, max 255).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"token\": \"device-fcm-token\",\n    \"device_name\": \"iPhone 15 Pro\",\n    \"platform\": \"ios\"\n}",
+                            "raw": "{\n    \"token\": \"device-fcm-token\",\n    \"device_type\": \"ios\",\n    \"device_name\": \"iPhone 15 Pro\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2998,6 +3224,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST unregister an FCM device token. Body: token (REQUIRED, string, max 500).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"token\": \"device-fcm-token\"\n}",
@@ -3029,6 +3256,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of the caller's registered FCM devices — no body.",
                         "url": {
                             "raw": "{{baseURL}}/fcm/tokens",
                             "host": ["{{baseURL}}"],
@@ -3056,9 +3284,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create a report against a user. Body: reported_user_id (REQUIRED, must exist in users, cannot report self), reason (REQUIRED, string, max 255), details (optional, nullable, string, max 1000).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"reported_user_id\": 1,\n    \"reason\": \"Inappropriate behavior\",\n    \"description\": \"Description of the issue\"\n}",
+                            "raw": "{\n    \"reported_user_id\": 1,\n    \"reason\": \"Inappropriate behavior\",\n    \"details\": \"Details of the issue\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -3089,6 +3318,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET search users and projects — query params only, no body. Query params: q (REQUIRED, string, min 2, max 100), limit (optional — accepts 'all' and '0' too), job_title (optional, string, max 100), location (optional, string, max 100), created_from (optional, date Y-m-d), created_to (optional, date Y-m-d), is_public_profile (optional, boolean), skills (optional, string, max 200), visibility (optional) [private,public], status (optional) [active,paused,completed], start_date_from (optional, date Y-m-d), start_date_to (optional, date Y-m-d), end_date_from (optional, date Y-m-d), end_date_to (optional, date Y-m-d), created_by (optional, integer, min 1).",
                         "url": {
                             "raw": "{{baseURL}}/search?q=8@",
                             "host": ["{{baseURL}}"],
@@ -3119,6 +3349,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of the caller's favorite users — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorites",
                             "host": ["{{baseURL}}"],
@@ -3138,6 +3369,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST add a user to favorites. Body: user_id (REQUIRED, must exist in users, cannot add self).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"user_id\": 2\n}",
@@ -3166,6 +3398,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE a favorite user identified by {userId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorites/{userId}",
                             "host": ["{{baseURL}}"],
@@ -3185,16 +3418,11 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST toggle a user in favorites identified by {userId} — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/my-favorites/toggle/:id",
+                            "raw": "{{baseURL}}/my-favorites/toggle/{userId}",
                             "host": ["{{baseURL}}"],
-                            "path": ["my-favorites", "toggle", ":id"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "2"
-                                }
-                            ]
+                            "path": ["my-favorites", "toggle", "{userId}"]
                         }
                     },
                     "response": []
@@ -3210,16 +3438,11 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET check if a user identified by {userId} is in the caller's favorites — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/my-favorites/check/:id",
+                            "raw": "{{baseURL}}/my-favorites/check/{userId}",
                             "host": ["{{baseURL}}"],
-                            "path": ["my-favorites", "check", ":id"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["my-favorites", "check", "{userId}"]
                         }
                     },
                     "response": []
@@ -3240,6 +3463,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of the caller's favorite projects — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorite-projects",
                             "host": ["{{baseURL}}"],
@@ -3259,6 +3483,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST add a project to favorites. Body: project_id (REQUIRED, must exist in projects).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"project_id\": 1\n}",
@@ -3287,16 +3512,11 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE a favorite project identified by {projectId} — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/my-favorite-projects/:id",
+                            "raw": "{{baseURL}}/my-favorite-projects/{projectId}",
                             "host": ["{{baseURL}}"],
-                            "path": ["my-favorite-projects", ":id"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["my-favorite-projects", "{projectId}"]
                         }
                     },
                     "response": []
@@ -3312,16 +3532,11 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST toggle a project in favorites identified by {projectId} — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/my-favorite-projects/toggle/:id",
+                            "raw": "{{baseURL}}/my-favorite-projects/toggle/{projectId}",
                             "host": ["{{baseURL}}"],
-                            "path": ["my-favorite-projects", "toggle", ":id"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["my-favorite-projects", "toggle", "{projectId}"]
                         }
                     },
                     "response": []
@@ -3337,16 +3552,11 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET check if a project identified by {projectId} is in the caller's favorites — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/my-favorite-projects/check/:id",
+                            "raw": "{{baseURL}}/my-favorite-projects/check/{projectId}",
                             "host": ["{{baseURL}}"],
-                            "path": ["my-favorite-projects", "check", ":id"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["my-favorite-projects", "check", "{projectId}"]
                         }
                     },
                     "response": []
@@ -3367,10 +3577,11 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET list of groups for a project — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/projects/1/groups",
+                            "raw": "{{baseURL}}/projects/{project}/groups",
                             "host": ["{{baseURL}}"],
-                            "path": ["projects", "1", "groups"]
+                            "path": ["projects", "{project}", "groups"]
                         }
                     },
                     "response": []
@@ -3386,6 +3597,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET single group — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}",
                             "host": ["{{baseURL}}"],
@@ -3410,6 +3622,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "GET group members — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/members",
                             "host": ["{{baseURL}}"],
@@ -3435,6 +3648,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST leave group — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/leave",
                             "host": ["{{baseURL}}"],
@@ -3460,9 +3674,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST create group. Body: name (REQUIRED, string, 2-255 chars), manager_id (REQUIRED, must exist in users), member_ids (REQUIRED, array min 1 of existing user ids, all different from manager_id), description (optional, nullable, max 1000), avatar (optional, nullable, url, max 255). Use integers (not strings) for manager_id and member_ids.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"manager_id\": \"1\",\n    \"member_ids\": [\"2\"],\n    \"name\": \"New Group\"\n}",
+                            "raw": "{\n    \"name\": \"New Group\",\n    \"manager_id\": 1,\n    \"member_ids\": [2, 3],\n    \"description\": \"Group description\",\n    \"avatar\": \"https://example.com/avatar.png\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -3470,15 +3685,9 @@
                             }
                         },
                         "url": {
-                            "raw": "{{baseURL}}/projects/:id/groups",
+                            "raw": "{{baseURL}}/projects/{project}/groups",
                             "host": ["{{baseURL}}"],
-                            "path": ["projects", ":id", "groups"],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "1"
-                                }
-                            ]
+                            "path": ["projects", "{project}", "groups"]
                         }
                     },
                     "response": []
@@ -3494,9 +3703,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update group. All fields optional (sometimes): name (string, 2-255 chars), description (optional, nullable, max 1000), avatar (optional, nullable, url, max 255), is_active (optional, boolean).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"name\": \"Updated Group\"\n}",
+                            "raw": "{\n    \"name\": \"Updated Group\",\n    \"description\": \"Updated description\",\n    \"avatar\": \"https://example.com/avatar.png\",\n    \"is_active\": true\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -3527,6 +3737,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE group — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}",
                             "host": ["{{baseURL}}"],
@@ -3551,6 +3762,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST add member to group. Body: user_id (REQUIRED, must exist in users).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"user_id\": 1\n}",
@@ -3585,6 +3797,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE remove member from group — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/members/{userId}",
                             "host": ["{{baseURL}}"],
@@ -3611,6 +3824,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST transfer group manager. Body: new_manager_id (REQUIRED, must exist in users).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"new_manager_id\": 1\n}",
@@ -3650,9 +3864,10 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST add a project to a chain identified by {chain}. Body: project_id (REQUIRED, must exist in projects), position (optional, integer, min 0).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"project_id\": 1\n}",
+                            "raw": "{\n    \"project_id\": 1,\n    \"position\": 0\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -3682,6 +3897,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "DELETE remove a project identified by {project} from a chain identified by {chain} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/chains/{chain}/projects/{project}",
                             "host": ["{{baseURL}}"],
@@ -3706,6 +3922,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "POST reorder the projects in a chain identified by {chain}. Body: project_ids (REQUIRED, array of integers, each must exist in projects).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"project_ids\": [1, 2, 3]\n}",
@@ -3738,6 +3955,7 @@
                                 "type": "text"
                             }
                         ],
+                        "description": "PUT update the name of a chain identified by {chain}. Body: name (REQUIRED, string, max 255).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"name\": \"Updated chain name\"\n}",
@@ -3769,15 +3987,7 @@
                                 "type": "text"
                             }
                         ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"new_owner_id\": 2\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
+                        "description": "POST transfer chain ownership — no body. The new owner id comes from the URL path {userId}; do NOT send it in the body.",
                         "url": {
                             "raw": "{{baseURL}}/chains/{chain}/transfer-ownership/{userId}",
                             "host": ["{{baseURL}}"],
