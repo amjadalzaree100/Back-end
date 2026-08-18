@@ -213,6 +213,8 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     Route::post('/projects/{project}/groups/{group}/leave', [GroupMemberController::class, 'leaveGroup']);
     Route::get('/projects/{project}/groups/{group}/manager', [GroupMemberController::class, 'getManager']);
     Route::get('/my-managed-groups', [GroupController::class, 'myManagedGroups']);
+    Route::get('/my-groups', [GroupController::class, 'myGroups']);
+
 
 
 });

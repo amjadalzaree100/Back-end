@@ -57,9 +57,11 @@ class User extends Authenticatable
     }
 
     public function managedGroups()
-{
-    return $this->hasMany(Group::class, 'manager_id');
-}
+    {
+        return $this->hasMany(Group::class, 'manager_id');
+    }
+
+    
 
     public function ownedProjects()
     {
@@ -73,7 +75,7 @@ class User extends Authenticatable
 
     public function hasVerifiedEmail(): bool
     {
-        return ! is_null($this->email_verified_at);
+        return !is_null($this->email_verified_at);
     }
 
     public function markEmailAsVerified(): void

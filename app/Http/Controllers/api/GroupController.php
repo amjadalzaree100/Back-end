@@ -285,4 +285,46 @@ class GroupController extends Controller
             'total' => $groups->count(),
         ]);
     }
+
+    /**
+     * Get all groups where the authenticated user is a member.
+     */
+    public function myGroups(Request $request): JsonResponse
+    {
+        try {
+            $userId = $request->user()->id;
+
+            $groups = Group::with([
+                'project',
+                'manager',
+                'creator',
+                'members',
+                'groupTasks' => function ($query) {
+                    $query->whereNull('parent_task_id')->limit(5);
+                }
+            ])
+                ->whereHas('members', function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => GroupResource::collection($groups),
+                'total' => $groups->count(),
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch my groups: ' . $e->getMessage(), [
+                'user_id' => $request->user()->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load groups. Please try again later.'
+            ], 500);
+        }
+    }
 }
