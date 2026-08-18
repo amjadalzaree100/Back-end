@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use app\Models\Reminder;
+use App\Models\Reminder;
 use App\Models\User;
 use App\Support\DateRange;
 use Illuminate\Http\Request;

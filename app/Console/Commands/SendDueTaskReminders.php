@@ -1,9 +1,9 @@
 <?php
 
-namespace app\Console\Commands;
+namespace App\Console\Commands;
 
-use app\Models\Task;
-use app\Services\NotificationService;
+use App\Models\Task;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;

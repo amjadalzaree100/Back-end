@@ -1,9 +1,9 @@
 <?php
 
-namespace app\Http\Controllers\api;
+namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
-use app\Http\Requests\Note\UpdateNoteRequest;
+use App\Http\Requests\Note\UpdateNoteRequest;
 use App\Http\Requests\StoreNoteRequest;
 use App\Http\Resources\NoteResource;
 use App\Models\Note;

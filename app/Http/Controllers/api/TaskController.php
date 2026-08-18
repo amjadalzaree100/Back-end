@@ -1,11 +1,11 @@
 <?php
 
-namespace app\Http\Controllers\api;
+namespace App\Http\Controllers\api;
 
 use App\Events\TaskNotificationEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Task\ReorderTasksRequest;
-use app\Http\Requests\Task\StoreGroupTaskRequest;
+use App\Http\Requests\Task\StoreGroupTaskRequest;
 use App\Http\Requests\Task\StoreManagerTaskRequest;
 use App\Http\Requests\Task\StoreSubTaskRequest;
 use App\Http\Requests\Task\StoreTaskRequest;
@@ -16,7 +16,7 @@ use App\Models\Group;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskAssignment;
-use app\Models\User;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

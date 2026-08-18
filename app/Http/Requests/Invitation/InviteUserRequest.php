@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Requests\Invitation;
+namespace App\Http\Requests\Invitation;
 
 use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
@@ -49,7 +49,7 @@ class InviteUserRequest extends FormRequest
                 return;
             }
 
-            $existing = \app\Models\Request::where('project_id', $project->id)
+            $existing = \App\Models\Request::where('project_id', $project->id)
                 ->where('receiver_id', $invitee->id)
                 ->where('type', 'invitation')
                 ->where('status', 'pending')

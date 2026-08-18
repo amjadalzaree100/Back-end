@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Requests\Search;
+namespace App\Http\Requests\Search;
 
 use Illuminate\Foundation\Http\FormRequest;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Requests\JoinRequest;
+namespace App\Http\Requests\JoinRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
 

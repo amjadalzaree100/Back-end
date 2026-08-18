@@ -1,12 +1,12 @@
 <?php
 
-namespace app\Models;
+namespace App\Models;
 
-use app\Events\ManagerTaskCompleted;
-use app\Events\TaskCompleted;
+use App\Events\ManagerTaskCompleted;
+use App\Events\TaskCompleted;
 use App\Models\Project;
 use App\Models\Reminder;
-use app\Models\TaskAssignment;
+use App\Models\TaskAssignment;
 use App\Models\TaskAssignmentHistory;
 use App\Models\TaskStatusHistory;
 use Illuminate\Database\Eloquent\Builder;

@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Controllers\api;
+namespace App\Http\Controllers\api;
 
 use App\Events\TaskNotificationEvent;
 use App\Http\Controllers\Controller;
