@@ -4,6 +4,7 @@ namespace app\Http\Controllers\api;
 
 use app\Http\Controllers\Controller;
 use App\Http\Requests\Group\AddGroupMemberRequest;
+use App\Http\Requests\Group\SetGroupManagerRequest;
 use App\Http\Requests\Group\TransferManagerRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Group;
@@ -11,6 +12,7 @@ use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class GroupMemberController extends Controller
 {
@@ -227,4 +229,81 @@ class GroupMemberController extends Controller
             ], 500);
         }
     }
+
+
+    /**
+     * Get the current manager of a group
+     */
+    public function getManager(Project $project, Group $group, Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        // Check access: project owner, group member, or group manager
+        if (!$project->isOwner($userId) && !$group->isMember($userId) && !$group->isManager($userId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have access to this group'
+            ], 403);
+        }
+
+        $manager = $group->manager()->with('profile')->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'manager' => $manager ? new UserResource($manager) : null,
+                'has_manager' => !is_null($manager),
+            ]
+        ]);
+    }
+
+    /**
+     * Set or change the group manager
+     * The user must be a member of the group first
+     */
+    public function setManager(SetGroupManagerRequest $request, Project $project, Group $group): JsonResponse
+    {
+        $userId = $request->user_id;
+        $currentUserId = $request->user()->id;
+
+        try {
+            DB::beginTransaction();
+
+            // Update the group manager
+            $group->update(['manager_id' => $userId]);
+
+            // If the new manager is not already a member, add them
+            if (!$group->isMember($userId)) {
+                $group->addMember($userId, $currentUserId);
+            }
+
+
+            DB::commit();
+
+            $group->load(['manager', 'members']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Group manager assigned successfully',
+                'data' => [
+                    'manager' => $group->manager ? new UserResource($group->manager) : null,
+                    'manager_id' => $group->manager_id,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to set group manager: ' . $e->getMessage(), [
+                'group_id' => $group->id,
+                'user_id' => $userId,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to assign manager. Please try again later.'
+            ], 500);
+        }
+    }
+
 }

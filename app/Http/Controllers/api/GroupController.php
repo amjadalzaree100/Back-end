@@ -20,23 +20,31 @@ class GroupController extends Controller
             $userId = $request->user()->id;
             $search = $request->input('search');
 
-            // Only project owner can view groups
-            if (!$project->isOwner($userId)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Only the project owner can view groups.'
-                ], 403);
+            $query = Group::with(['manager', 'creator', 'members'])
+                ->where('project_id', $project->id)
+                ->active();
+
+            // Apply permission filter
+            $isOwner = $project->isOwner($userId);
+            $isManager = $project->isManager($userId);
+
+            if (!$isOwner && !$isManager) {
+                // Regular members: only see groups they are members of
+                $query->whereHas('members', function ($q) use ($userId) {
+                    $q->where('user_id', $userId);
+                });
+            }
+            // If owner or manager, no extra filter needed (see all groups)
+
+            // Apply search filter
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('description', 'LIKE', '%' . $search . '%');
+                });
             }
 
-            $groups = Group::with(['manager', 'creator', 'members'])
-                ->where('project_id', $project->id)
-                ->when($search, function ($query) use ($search) {
-                    $query->where('name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('description', 'LIKE', '%' . $search . '%');
-                })
-                ->active()
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $groups = $query->orderBy('created_at', 'desc')->get();
 
             return response()->json([
                 'success' => true,
@@ -46,7 +54,7 @@ class GroupController extends Controller
         } catch (\Exception $e) {
             Log::error('Failed to fetch groups: ' . $e->getMessage(), [
                 'project_id' => $project->id,
-                'user_id' => $userId ?? null,
+                'user_id' => $request->user()->id ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
             return response()->json([
@@ -117,14 +125,16 @@ class GroupController extends Controller
                 'name' => $request->name,
                 'description' => $request->description,
                 'avatar' => $request->avatar,
-                'manager_id' => $managerId,
+                'manager_id' => null,
                 'created_by' => $userId,
                 'is_active' => true,
             ]);
 
-            // Add manager as member
-            $group->addMember($managerId, $userId);
 
+            // Add manager as member only if manager_id is provided
+            if ($managerId) {
+                $group->addMember($managerId, $userId);
+            }
             // Add additional members
             if (!empty($memberIds)) {
                 foreach (array_unique($memberIds) as $memberId) {

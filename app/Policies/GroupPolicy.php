@@ -30,10 +30,8 @@ class GroupPolicy
      */
     public function create(User $user, Group $group): bool
     {
-        // Only project owner can create groups
-        return $group->project->isOwner($user->id);
+        return $group->project->isOwner($user->id) || $group->project->isManager($user->id);
     }
-
     /**
      * Determine if a user can update a group
      *
@@ -98,5 +96,16 @@ class GroupPolicy
         // Current manager can transfer their role
         // Project owner can also transfer manager role
         return $group->isManager($user->id) || $group->project->isOwner($user->id);
+    }
+
+    /**
+     * Determine if a user can set/change the group manager
+     */
+    public function setManager(User $user, Group $group): bool
+    {
+        // Project owner, project manager, or current group manager can set manager
+        return $group->project->isOwner($user->id)
+            || $group->project->isManager($user->id)
+            || $group->isManager($user->id);
     }
 }

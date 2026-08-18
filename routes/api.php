@@ -211,6 +211,8 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     Route::get('/projects/{project}/groups/{group}', [GroupController::class, 'show']);
     Route::get('/projects/{project}/groups/{group}/members', [GroupMemberController::class, 'index']);
     Route::post('/projects/{project}/groups/{group}/leave', [GroupMemberController::class, 'leaveGroup']);
+    Route::get('/projects/{project}/groups/{group}/manager', [GroupMemberController::class, 'getManager']);
+
 });
 
 // ============= GROUPS ROUTES - Write operations =============
@@ -221,6 +223,8 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'
     Route::post('/projects/{project}/groups/{group}/members', [GroupMemberController::class, 'addMember']);
     Route::delete('/projects/{project}/groups/{group}/members/{userId}', [GroupMemberController::class, 'removeMember']);
     Route::post('/projects/{project}/groups/{group}/transfer-manager', [GroupMemberController::class, 'transferManager']);
+    Route::post('/projects/{project}/groups/{group}/set-manager', [GroupMemberController::class, 'setManager']);
+
 });
 
 // TASKS ROUTES - Read only (always accessible)

@@ -16,11 +16,13 @@ class GroupResource extends JsonResource
             'description' => $this->description,
             'avatar' => $this->avatar,
             'is_active' => $this->is_active,
-            'manager' => [
-                'id' => $this->manager?->id,
-                'name' => $this->manager?->name,
-                'avatar' => $this->manager?->profile?->avatar,
-            ],
+            'manager' => $this->whenLoaded('manager', function () {
+                return $this->manager ? [
+                    'id' => $this->manager->id,
+                    'name' => $this->manager->name,
+                    'avatar' => $this->manager->profile?->avatar,
+                ] : null;
+            }),
             'creator' => [
                 'id' => $this->creator?->id,
                 'name' => $this->creator?->name,
