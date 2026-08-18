@@ -34,7 +34,6 @@ class StoreManagerTaskRequest extends FormRequest
             'description' => 'nullable|string|max:5000',
             'priority' => 'nullable|in:low,medium,high,urgent',
             'due_date' => 'nullable|date|after_or_equal:today',
-            'status_id' => 'nullable|exists:task_statuses,id',
             'allow_subtasks' => 'nullable|boolean',
         ];
 
