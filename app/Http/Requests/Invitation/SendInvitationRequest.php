@@ -11,8 +11,8 @@ class SendInvitationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $project = Project::find($this->route('project'));
-        if (!$project) {
+        $project = $this->route('project');
+        if (!$project instanceof Project) {
             return false;
         }
 

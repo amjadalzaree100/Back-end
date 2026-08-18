@@ -232,8 +232,8 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'
 // TASKS ROUTES - Read only (always accessible)
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
     Route::prefix('projects/{project}/tasks')->group(function () {
-        Route::get('/', [TaskController::class, 'index']);
         Route::get('/archived', [TaskController::class, 'archivedTasks']);
+        Route::get('/assigned-kanban', [TaskController::class, 'getAssignedTasksKanban']);
         Route::get('/{task}', [TaskController::class, 'show']);
         Route::get('/trashed', [TaskController::class, 'trashed']);
         Route::get('/completed', [TaskController::class, 'getCompletedTasks']);
