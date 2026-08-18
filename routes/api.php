@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Route;
 
 // PUBLIC ROUTES (No authentication required)
 Route::post('/register', [RegisterController::class, 'register']);
-Route::post('/login', [LoginController::class, 'login']);
+Route::post('/login', [LoginController::class, 'login'])->name('login');
 Route::post('/verify-email', [EmailVerificationController::class, 'verify'])
     ->middleware('throttle.verify');
 Route::post('/resend-verification', [EmailVerificationController::class, 'resend'])
@@ -232,12 +232,12 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     Route::prefix('projects/{project}/tasks')->group(function () {
         Route::get('/archived', [TaskController::class, 'archivedTasks']);
         Route::get('/assigned-kanban', [TaskController::class, 'getAssignedTasksKanban']);
-        Route::get('/{task}', [TaskController::class, 'show']);
         Route::get('/trashed', [TaskController::class, 'trashed']);
         Route::get('/completed', [TaskController::class, 'getCompletedTasks']);
         Route::get('/assigned', [TaskController::class, 'getAssignedTasks']);
         Route::get('/unassigned', [TaskController::class, 'getUnassignedTasks']);
         Route::get('/group-tasks', [TaskController::class, 'getGroupTasks']);
+        Route::get('/{task}', [TaskController::class, 'show']);
         Route::get('/{task}/history', [TaskController::class, 'getTaskHistory']);
     });
 });
