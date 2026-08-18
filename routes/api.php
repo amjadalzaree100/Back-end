@@ -343,6 +343,9 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     });
 });
 
+Route::get('/my-kanban-tasks', [TaskController::class, 'myKanbanTasks'])
+    ->middleware(['auth:sanctum', 'is.active', 'verified']);
+
 // TASKS ROUTES - Write operations
 Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'])->group(function () {
     Route::prefix('projects/{project}/tasks')->group(function () {

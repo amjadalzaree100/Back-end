@@ -1730,4 +1730,63 @@ class TaskController extends Controller
             ], 500);
         }
     }
+
+    public function myKanbanTasks(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $userId = $user->id;
+
+        // 1. Build the query: all tasks where user is assigned (primary or via task_assignments)
+        $tasks = Task::with([
+            'status',
+            'project',
+            'assignee',
+            'taskAssignments.user',
+            'parentTask',          // for subtask identification
+            'subTasks' => function ($query) {
+                $query->with(['status', 'assignee', 'taskAssignments.user'])
+                    ->orderBy('position');
+            },
+            'comments' => function ($query) {
+                $query->latest()->limit(3); // optional: last 3 comments
+            }
+        ])
+            ->where(function ($query) use ($userId) {
+                $query->where('assigned_to', $userId)
+                    ->orWhereHas('taskAssignments', function ($q) use ($userId) {
+                        $q->where('user_id', $userId);
+                    });
+            })
+            ->where('is_archived', false)   // exclude archived tasks (optional)
+            ->orderBy('priority', 'desc')   // urgent first
+            ->orderBy('due_date', 'asc')    // earliest due date first
+            ->get();
+
+        // 2. Group tasks by status (use 'no-status' for tasks with missing status)
+        $grouped = $tasks->groupBy(function ($task) {
+            return $task->status_id ?? 'no-status';
+        });
+
+        // 3. Build the Kanban structure with status info
+        $kanban = $grouped->map(function ($tasks, $statusId) {
+            // Get status from the first task (all tasks in the group share same status_id)
+            $status = $tasks->first()->status;
+
+            return [
+                'status_id' => $statusId === 'no-status' ? null : (int) $statusId,
+                'status_name' => $status ? $status->name : 'بدون حالة',
+                'status_position' => $status ? $status->position : 999,
+                'tasks' => TaskResource::collection($tasks),
+                'tasks_count' => $tasks->count(),
+            ];
+        })->sortBy('status_position')->values();
+
+        // 4. Return response
+        return response()->json([
+            'success' => true,
+            'data' => $kanban,
+            'total_tasks' => $tasks->count(),
+        ]);
+    }
+
 }
