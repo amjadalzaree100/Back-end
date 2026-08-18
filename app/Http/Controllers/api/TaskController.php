@@ -38,14 +38,6 @@ class TaskController extends Controller
     {
         $this->checkProjectManager($project);
 
-        $statusId = $request->status_id ?? $project->taskStatuses()->first()?->id;
-        if (!$statusId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please create task statuses first',
-            ], 422);
-        }
-
         $allowSubtasks = $request->input('allow_subtasks', false);
         $canBeAssigned = !$allowSubtasks; // parent tasks cannot be assigned
 
@@ -58,7 +50,7 @@ class TaskController extends Controller
         }
 
         $maxPosition = Task::where('project_id', $project->id)
-            ->where('status_id', $statusId)
+            ->whereNull('status_id')
             ->max('position') ?? -1;
 
         try {
@@ -66,7 +58,7 @@ class TaskController extends Controller
 
             $task = Task::create([
                 'project_id' => $project->id,
-                'status_id' => $statusId,
+                'status_id' => null,
                 'title' => $request->title,
                 'description' => $request->description,
                 'priority' => $request->priority ?? 'medium',
@@ -128,14 +120,6 @@ class TaskController extends Controller
     {
         $this->checkProjectManager($project);
 
-        $statusId = $request->status_id ?? $project->taskStatuses()->first()?->id;
-        if (!$statusId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please create task statuses first',
-            ], 422);
-        }
-
         $group = Group::where('id', $request->group_id)
             ->where('project_id', $project->id)
             ->first();
@@ -156,7 +140,7 @@ class TaskController extends Controller
             $task = Task::create([
                 'project_id' => $project->id,
                 'assigned_group_id' => $group->id,
-                'status_id' => $statusId,
+                'status_id' => null,
                 'title' => $request->title,
                 'description' => $request->description,
                 'priority' => $request->priority ?? 'medium',
@@ -212,14 +196,6 @@ class TaskController extends Controller
         $userId = $request->user()->id;
         $this->checkProjectManager($project);
 
-        $statusId = $request->status_id ?? $project->taskStatuses()->first()?->id;
-        if (!$statusId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please create task statuses first',
-            ], 422);
-        }
-
         $allowSubtasks = $request->input('allow_subtasks', false);
         $canBeAssigned = !$allowSubtasks;
 
@@ -241,7 +217,7 @@ class TaskController extends Controller
             $task = Task::create([
                 'project_id' => $project->id,
                 'group_id' => $group->id,
-                'status_id' => $statusId,
+                'status_id' => null,
                 'title' => $request->title,
                 'description' => $request->description,
                 'priority' => $request->priority ?? 'medium',
@@ -332,14 +308,6 @@ class TaskController extends Controller
             ], 422);
         }
 
-        $statusId = $request->status_id ?? $project->taskStatuses()->first()?->id;
-        if (!$statusId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please create task statuses first',
-            ], 422);
-        }
-
         try {
             DB::beginTransaction();
 
@@ -347,7 +315,7 @@ class TaskController extends Controller
                 'project_id' => $project->id,
                 'group_id' => $group->id,
                 'parent_task_id' => $parentTask->id,
-                'status_id' => $statusId,
+                'status_id' => null,
                 'title' => $request->title,
                 'description' => $request->description,
                 'priority' => $request->priority ?? 'medium',
@@ -362,7 +330,7 @@ class TaskController extends Controller
                 TaskAssignment::create([
                     'task_id' => $subTask->id,
                     'user_id' => $assignedUserId,
-                    'status_id' => $statusId,
+                    'status_id' => null,
                 ]);
             }
 
@@ -997,6 +965,10 @@ class TaskController extends Controller
         try {
             $this->checkProjectAccess($project);
 
+            $statuses = $project->taskStatuses()
+                ->orderBy('position')
+                ->get();
+
             $tasks = $project->tasks()
                 ->where('is_archived', false)
                 ->where(function ($q) {
@@ -1022,25 +994,33 @@ class TaskController extends Controller
                 return $task->status_id ?? 'no-status';
             });
 
-            $kanban = $grouped->map(function ($tasks, $statusId) {
-                $status = $tasks->first()->status;
+            $kanban = $statuses->map(function ($status) use ($grouped) {
+                $statusTasks = $grouped->get($status->id, collect());
 
                 return [
-                    'status' => $status ? [
+                    'status' => [
                         'id' => $status->id,
                         'name' => $status->name,
                         'position' => $status->position,
-                    ] : null,
-                    'tasks' => TaskResource::collection($tasks),
-                    'tasks_count' => $tasks->count(),
+                    ],
+                    'tasks' => TaskResource::collection($statusTasks),
+                    'tasks_count' => $statusTasks->count(),
                 ];
-            })->sortBy(function ($column) {
-                return $column['status']['position'] ?? 999;
-            })->values();
+            });
+
+            if ($grouped->has('no-status')) {
+                $noStatusTasks = $grouped->get('no-status');
+
+                $kanban->push([
+                    'status' => null,
+                    'tasks' => TaskResource::collection($noStatusTasks),
+                    'tasks_count' => $noStatusTasks->count(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
-                'data' => $kanban,
+                'data' => $kanban->values(),
                 'total_tasks' => $tasks->count(),
             ]);
         } catch (\Exception $e) {
