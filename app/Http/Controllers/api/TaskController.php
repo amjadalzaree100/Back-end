@@ -672,7 +672,7 @@ class TaskController extends Controller
             ], 422);
         }
 
-        
+
 
         try {
             DB::beginTransaction();
@@ -710,7 +710,7 @@ class TaskController extends Controller
             ]);
 
             // If this task is a subtask, sync parent task status after status change
-            
+
             DB::commit();
 
             $task->load(['status', 'creator', 'assignee', 'assignees']);
