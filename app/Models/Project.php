@@ -55,6 +55,12 @@ class Project extends Model
 
     // ============== Relationships ==============
 
+    public function getChainIdAttribute(): ?int
+    {
+        $chain = $this->chains()->first();
+        return $chain?->id;
+    }
+
     public function chains(): BelongsToMany
     {
         return $this->belongsToMany(Chain::class, 'chain_projects')

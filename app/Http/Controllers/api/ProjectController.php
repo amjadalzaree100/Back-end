@@ -104,23 +104,20 @@ class ProjectController extends Controller
     {
         $userId = $request->user()->id;
 
-        // 1. Determine access level
         $isOwner = $project->created_by === $userId;
         $isMember = $project->hasUser($userId);
         $isPublic = $project->visibility === 'public';
 
-        // Full details allowed for: owner, member, or public project
         $canViewFullDetails = $isOwner || $isMember || $isPublic;
 
-        // 2. Load always-visible relations (comments & reactions)
         $project->load([
             'projectComments' => function ($q) {
                 $q->with(['user', 'user.profile'])->whereNull('parent_id')->latest();
             },
             'reactions',
+            'chains', 
         ]);
 
-        // 3. Load conditional relations (without loading all members)
         if ($canViewFullDetails) {
             $project->load([
                 'creator',
@@ -128,10 +125,8 @@ class ProjectController extends Controller
             ]);
         }
 
-        // Always load counts (lightweight)
         $project->loadCount(['users', 'tasks']);
 
-        // 4. Compute user-specific info
         if ($isOwner || $isMember) {
             $role = $project->users()
                 ->where('user_id', $userId)
@@ -143,7 +138,6 @@ class ProjectController extends Controller
             $project->is_owner = false;
         }
 
-        // 5. Return response with appropriate resource
         return response()->json([
             'success' => true,
             'data' => (new ProjectResource($project))->setFullDetails($canViewFullDetails)

@@ -20,7 +20,6 @@ class ProjectResource extends JsonResource
         $user = $request->user();
         $isOwnerOrMember = ($this->created_by === $user?->id) || $this->users->contains('id', $user?->id);
 
-        // Private project and visitor without full details permission
         if ($this->visibility === 'private' && !$this->showFullDetails) {
             return [
                 'id' => $this->id,
@@ -34,12 +33,18 @@ class ProjectResource extends JsonResource
                 'reaction_counts' => $this->reaction_counts,
                 'user_reaction' => $this->when(request()->user(), fn() => $this->user_reaction),
                 'comments' => ProjectCommentResource::collection($this->whenLoaded('projectComments')),
+                'chain' => $this->whenLoaded('chains', function () {
+                    $chain = $this->chains->first();
+                    return $chain ? [
+                        'id' => $chain->id,
+                        'name' => $chain->name,
+                    ] : null;
+                }),
                 'created_at' => $this->created_at?->toISOString(),
                 'updated_at' => $this->updated_at?->toISOString(),
             ];
         }
 
-        // Full details (for owner, member, or public project)
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -69,6 +74,13 @@ class ProjectResource extends JsonResource
             'user_reaction' => $this->when(request()->user(), fn() => $this->user_reaction),
             'allow_commit' => $this->allow_commit,
             'allow_reactions' => $this->allow_reactions,
+            'chain' => $this->whenLoaded('chains', function () {
+                $chain = $this->chains->first();
+                return $chain ? [
+                    'id' => $chain->id,
+                    'name' => $chain->name,
+                ] : null;
+            }),
         ];
     }
 }
