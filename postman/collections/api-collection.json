@@ -4029,6 +4029,150 @@
                         }
                     },
                     "response": []
+                },
+                {
+                    "name": "expel-all-members",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "POST expel all members from a group (owner-only). Removes all members from the group and sets manager_id to null — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{{project_id}}/groups/{{group_id}}/expel-all-members",
+                            "host": ["{{baseURL}}"],
+                            "path": [
+                                "projects",
+                                "{{project_id}}",
+                                "groups",
+                                "{{group_id}}",
+                                "expel-all-members"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "detach-tasks",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "POST detach all tasks from a group (owner-only). Sets group_id and assigned_group_id to null — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{{project_id}}/groups/{{group_id}}/detach-tasks",
+                            "host": ["{{baseURL}}"],
+                            "path": [
+                                "projects",
+                                "{{project_id}}",
+                                "groups",
+                                "{{group_id}}",
+                                "detach-tasks"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get-group-board",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET tasks related to a group that have no status (not yet on the kanban board) — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{{project_id}}/groups/{{group_id}}/board",
+                            "host": ["{{baseURL}}"],
+                            "path": [
+                                "projects",
+                                "{{project_id}}",
+                                "groups",
+                                "{{group_id}}",
+                                "board"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get-group-kanban",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET all tasks related to a group grouped by status for Kanban view — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{{project_id}}/groups/{{group_id}}/kanban",
+                            "host": ["{{baseURL}}"],
+                            "path": [
+                                "projects",
+                                "{{project_id}}",
+                                "groups",
+                                "{{group_id}}",
+                                "kanban"
+                            ]
+                        }
+                    },
+                    "response": []
                 }
             ]
         },
