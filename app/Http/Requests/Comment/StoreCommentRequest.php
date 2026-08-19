@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Requests\Comment;
+namespace App\Http\Requests\Comment;
 
 use Illuminate\Foundation\Http\FormRequest;
 

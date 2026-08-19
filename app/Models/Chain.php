@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use app\Models\Project;
-use app\Models\User;
+use App\Models\Project;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;

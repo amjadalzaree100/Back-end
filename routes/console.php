@@ -12,7 +12,7 @@ Artisan::command('inspire', function () {
 
 
 Schedule::call(function () {
-    $deleted = \app\Models\VerificationCode::where('expires_at', '<', now())->delete();
+    $deleted = \App\Models\VerificationCode::where('expires_at', '<', now())->delete();
     \Illuminate\Support\Facades\Log::info("Cleaned {$deleted} expired verification codes");
 })->daily();
 

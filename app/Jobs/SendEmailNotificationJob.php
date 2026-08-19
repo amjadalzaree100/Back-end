@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Jobs;
+namespace App\Jobs;
 
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
