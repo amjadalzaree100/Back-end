@@ -475,31 +475,47 @@ class GroupController extends Controller
     {
         try {
             $userId = $request->user()->id;
+            $projectId = $request->input('project_id');
 
-            $groups = Group::with([
-                'project',
-                'manager',
-                'creator',
-                'members',
-                'groupTasks' => function ($query) {
-                    $query->whereNull('parent_task_id')->limit(5);
+            $query = Group::with(['project', 'manager', 'creator', 'members'])
+                ->withCount('groupTasks')
+                ->whereHas('members', function ($q) use ($userId) {
+                    $q->where('user_id', $userId);
+                });
+
+            // Filter by project if provided
+            if ($projectId) {
+                $project = Project::find($projectId);
+
+                if (!$project) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Project not found'
+                    ], 404);
                 }
-            ])
-                ->whereHas('members', function ($query) use ($userId) {
-                    $query->where('user_id', $userId);
-                })
-                ->orderBy('created_at', 'desc')
-                ->get();
+
+                // Check user has access to this project
+                if (!$project->isOwner($userId) && !$project->hasUser($userId)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You do not have access to this project'
+                    ], 403);
+                }
+
+                $query->where('project_id', $projectId);
+            }
+
+            $groups = $query->orderBy('created_at', 'desc')->get();
 
             return response()->json([
                 'success' => true,
                 'data' => GroupResource::collection($groups),
                 'total' => $groups->count(),
             ]);
-
         } catch (\Exception $e) {
             Log::error('Failed to fetch my groups: ' . $e->getMessage(), [
                 'user_id' => $request->user()->id,
+                'project_id' => $request->input('project_id'),
                 'trace' => $e->getTraceAsString(),
             ]);
 
