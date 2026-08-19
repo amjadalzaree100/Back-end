@@ -50,10 +50,6 @@ class TaskAssignment extends Model
         if (!$this->isCompleted()) {
             $this->update(['completed_at' => now()]);
 
-            $task = $this->task;
-            if ($task && $task->auto_status) {
-                $task->updateAutoStatus();
-            }
         }
     }
 }

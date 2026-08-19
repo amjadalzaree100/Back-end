@@ -68,7 +68,6 @@ class TaskController extends Controller
                 'position' => $maxPosition + 1,
                 'allow_subtasks' => $allowSubtasks,
                 'can_be_assigned' => $canBeAssigned,
-                'auto_status' => false, // project parent tasks do not auto-complete
             ]);
 
             if ($canBeAssigned && $request->has('assignees')) {
@@ -225,7 +224,6 @@ class TaskController extends Controller
                 'created_by' => $userId,
                 'position' => $maxPosition + 1,
                 'allow_subtasks' => $allowSubtasks,
-                'auto_status' => $allowSubtasks,
                 'can_be_assigned' => $canBeAssigned,
                 'assigned_to' => ($canBeAssigned && $request->has('assigned_to')) ? $request->assigned_to : null,
             ]);
@@ -322,7 +320,6 @@ class TaskController extends Controller
                 'due_date' => $request->due_date,
                 'created_by' => $userId,
                 'allow_subtasks' => false,
-                'auto_status' => false,
                 'can_be_assigned' => true,
             ]);
 
@@ -566,13 +563,7 @@ class TaskController extends Controller
             ], 422);
         }
 
-        // 3. Prevent changing status of a parent task that has subtasks (optional, but recommended)
-        if ($task->allow_subtasks && $task->subTasks()->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot manually change status of a parent task that has subtasks. Its status is automatically managed.',
-            ], 422);
-        }
+        
 
         try {
             DB::beginTransaction();
@@ -610,12 +601,7 @@ class TaskController extends Controller
             ]);
 
             // If this task is a subtask, sync parent task status after status change
-            if ($task->parent_task_id) {
-                $parent = $task->parentTask;
-                if ($parent && $parent->auto_status) {
-                    $parent->syncStatusFromSubtasks();
-                }
-            }
+            
             DB::commit();
 
             $task->load(['status', 'creator', 'assignee', 'assignees']);

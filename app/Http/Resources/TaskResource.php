@@ -45,7 +45,6 @@ class TaskResource extends JsonResource
             'subtasks_count' => $this->subTasks->count(),
 
             'allow_subtasks' => $this->allow_subtasks,
-            'auto_status' => $this->auto_status,
             'can_be_assigned' => $this->can_be_assigned,
 
             'status_id' => $this->status_id,

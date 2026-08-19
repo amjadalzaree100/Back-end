@@ -40,7 +40,6 @@ class Task extends Model
         'group_id',
         'parent_task_id',
         'allow_subtasks',
-        'auto_status',
         'can_be_assigned',
         'assigned_group_id',
         'is_archived',
@@ -56,7 +55,6 @@ class Task extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
         'allow_subtasks' => 'boolean',
-        'auto_status' => 'boolean',
         'can_be_assigned' => 'boolean',
     ];
 
@@ -305,80 +303,7 @@ class Task extends Model
         return $this->belongsToMany(Reminder::class, 'reminder_task');
     }
 
-    public function canAutoComplete(): bool
-    {
-        if (!$this->auto_status) {
-            return false;
-        }
 
-        $incompleteSubtasks = $this->subTasks()
-            ->whereHas('taskAssignments', function ($q) {
-                $q->whereNull('completed_at');
-            })
-            ->count();
-
-        return $incompleteSubtasks === 0 && $this->subTasks()->count() > 0;
-    }
-
-    public function updateAutoStatus(): void
-    {
-        if ($this->canAutoComplete()) {
-            $this->update(['completed_at' => now()]);
-            event(new ManagerTaskCompleted($this));
-        }
-        $this->syncStatusFromSubtasks();
-    }
-
-    /**
-     * Automatically sync the parent task's status based on its subtasks' statuses.
-     * Only applicable if task has subtasks and auto_status = true.
-     */
-    public function syncStatusFromSubtasks(): bool
-    {
-        // Only apply to tasks that allow subtasks and have auto_status enabled
-        if (!$this->auto_status || !$this->allow_subtasks) {
-            return false;
-        }
-
-        $subtasks = $this->subTasks()->with('status')->get();
-        if ($subtasks->isEmpty()) {
-            return false;
-        }
-
-        // Get all unique statuses from subtasks
-        $subtaskStatuses = $subtasks->pluck('status')->filter();
-
-        if ($subtaskStatuses->isEmpty()) {
-            return false;
-        }
-
-        // Check if all subtasks are completed
-        $allCompleted = $subtasks->every(fn($subtask) => $subtask->isCompleted());
-
-        if ($allCompleted) {
-            // Find the "Done" status in the project
-            $doneStatus = $this->project->taskStatuses()
-                ->whereIn('name', ['Done', 'Completed', 'done', 'completed'])
-                ->orderBy('position', 'desc')
-                ->first();
-
-            if ($doneStatus && $this->status_id !== $doneStatus->id) {
-                $this->update(['status_id' => $doneStatus->id]);
-                return true;
-            }
-            return false;
-        }
-
-        // Find the status with the highest position among subtasks
-        $highestStatus = $subtaskStatuses->sortByDesc('position')->first();
-
-        if ($highestStatus && $this->status_id !== $highestStatus->id) {
-            $this->update(['status_id' => $highestStatus->id]);
-            return true;
-        }
-
-        return false;
-    }
 
     public function isStarted(): bool
     {
