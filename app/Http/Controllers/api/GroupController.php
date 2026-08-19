@@ -7,6 +7,7 @@ use App\Http\Requests\Group\StoreGroupRequest;
 use App\Http\Resources\GroupResource;
 use App\Models\Group;
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -95,14 +96,41 @@ class GroupController extends Controller
     {
         try {
             $userId = $request->user()->id;
-            $managerId = $request->manager_id;
+            $isOwner = $project->isOwner($userId);
+            $isManager = $project->isManager($userId);
 
-            // Ensure manager is a project member
-            if (!$project->hasUser($managerId)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'The selected manager must be a member of this project.'
-                ], 422);
+            // Determine manager_id based on role
+            if ($isOwner) {
+                // Owner can optionally provide a manager_id
+                $managerId = $request->manager_id; // can be null
+
+                // If manager_id is provided, validate it
+                if ($managerId) {
+                    if (!$project->hasUser($managerId)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'The selected manager must be a member of this project.'
+                        ], 422);
+                    }
+
+                    $managerRole = $project->getUserRole($managerId);
+                    if ($managerRole !== 'manager') {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'The selected manager must have the manager role in this project.'
+                        ], 422);
+                    }
+
+                    if ($project->isOwner($managerId)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'The project owner cannot be a group manager.'
+                        ], 422);
+                    }
+                }
+            } else {
+                // Manager automatically becomes the group manager
+                $managerId = $userId;
             }
 
             // Validate additional members (if provided)
@@ -125,20 +153,19 @@ class GroupController extends Controller
                 'name' => $request->name,
                 'description' => $request->description,
                 'avatar' => $request->avatar,
-                'manager_id' => null,
+                'manager_id' => $managerId,
                 'created_by' => $userId,
                 'is_active' => true,
             ]);
 
-
-            // Add manager as member only if manager_id is provided
+            // Add manager as member if manager_id is provided
             if ($managerId) {
                 $group->addMember($managerId, $userId);
             }
+
             // Add additional members
             if (!empty($memberIds)) {
                 foreach (array_unique($memberIds) as $memberId) {
-                    // Skip if already added (avoid duplicates)
                     if ($memberId !== $managerId && !$group->isMember($memberId)) {
                         $group->addMember($memberId, $userId);
                     }
@@ -236,16 +263,47 @@ class GroupController extends Controller
                 ], 404);
             }
 
-            if (!$project->isOwner($userId)) {
+            $isOwner = $project->isOwner($userId);
+            $isGroupManager = $group->isManager($userId);
+
+            if (!$isOwner && !$isGroupManager) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Only the project owner can delete groups.'
+                    'message' => 'You do not have permission to delete this group.'
                 ], 403);
             }
 
-            DB::beginTransaction();
+            // Group manager can only deactivate the group (set is_active = false)
+            if ($isGroupManager && !$isOwner) {
+                $group->update(['is_active' => false]);
 
-            $group->members()->detach();
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Group has been deactivated.'
+                ]);
+            }
+
+            // Owner can delete, but only if group has no members and no related tasks
+            $hasMembers = $group->members()->exists();
+            $hasRelatedTasks = Task::where('group_id', $group->id)
+                ->orWhere('assigned_group_id', $group->id)
+                ->exists();
+
+            if ($hasMembers) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete group with members. Please expel all members first using the expel-all-members endpoint.'
+                ], 422);
+            }
+
+            if ($hasRelatedTasks) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete group with related tasks. Please detach all tasks first using the detach-tasks endpoint.'
+                ], 422);
+            }
+
+            DB::beginTransaction();
 
             $group->delete();
 
@@ -267,6 +325,130 @@ class GroupController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete group. Please try again later.'
+            ], 500);
+        }
+    }
+
+    public function expelAllMembers(Request $request, Project $project, Group $group): JsonResponse
+    {
+        try {
+            $userId = $request->user()->id;
+
+            if ($group->project_id !== $project->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Group does not belong to this project.'
+                ], 404);
+            }
+
+            if (!$project->isOwner($userId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only the project owner can expel all members.'
+                ], 403);
+            }
+
+            if (!$group->is_active) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot modify an inactive group.'
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            // Set manager_id to null if there's a manager
+            if ($group->manager_id) {
+                $group->update(['manager_id' => null]);
+            }
+
+            // Detach all members
+            $group->members()->detach();
+
+            DB::commit();
+
+            $group->load(['manager', 'members']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All members have been expelled from the group.',
+                'data' => new GroupResource($group)
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to expel all members: ' . $e->getMessage(), [
+                'group_id' => $group->id,
+                'project_id' => $project->id,
+                'user_id' => $request->user()->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to expel members. Please try again later.'
+            ], 500);
+        }
+    }
+
+    public function detachTasks(Request $request, Project $project, Group $group): JsonResponse
+    {
+        try {
+            $userId = $request->user()->id;
+
+            if ($group->project_id !== $project->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Group does not belong to this project.'
+                ], 404);
+            }
+
+            if (!$project->isOwner($userId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only the project owner can detach tasks.'
+                ], 403);
+            }
+
+            if (!$group->is_active) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot modify an inactive group.'
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            // Detach tasks by group_id (manager tasks)
+            $managerTaskCount = Task::where('group_id', $group->id)->update(['group_id' => null]);
+
+            // Detach tasks by assigned_group_id (group tasks)
+            $groupTaskCount = Task::where('assigned_group_id', $group->id)->update(['assigned_group_id' => null]);
+
+            DB::commit();
+
+            $totalDetached = $managerTaskCount + $groupTaskCount;
+
+            return response()->json([
+                'success' => true,
+                'message' => "All tasks have been detached from the group. {$totalDetached} task(s) affected.",
+                'data' => [
+                    'manager_tasks_detached' => $managerTaskCount,
+                    'group_tasks_detached' => $groupTaskCount,
+                    'total_detached' => $totalDetached,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to detach tasks: ' . $e->getMessage(), [
+                'group_id' => $group->id,
+                'project_id' => $project->id,
+                'user_id' => $request->user()->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to detach tasks. Please try again later.'
             ], 500);
         }
     }

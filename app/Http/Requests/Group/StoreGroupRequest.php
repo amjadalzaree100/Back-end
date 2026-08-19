@@ -22,7 +22,7 @@ class StoreGroupRequest extends FormRequest
             'name' => 'required|string|max:255|min:2',
             'description' => 'nullable|string|max:1000',
             'avatar' => 'nullable|string|max:255|url',
-            'manager_id' => 'exists:users,id',
+            'manager_id' => 'nullable|exists:users,id',
             'member_ids' => 'nullable|array',
             'member_ids.*' => 'exists:users,id',
         ];
@@ -33,6 +33,7 @@ class StoreGroupRequest extends FormRequest
         return [
             'name.required' => 'Group name is required',
             'name.min' => 'Group name must be at least 2 characters',
+            'manager_id.exists' => 'The selected manager does not exist.',
         ];
     }
 

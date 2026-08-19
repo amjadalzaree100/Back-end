@@ -7,6 +7,7 @@ use App\Events\TaskNotificationEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Task\AssignUsersRequest;
 use App\Http\Resources\TaskResource;
+use App\Models\Group;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
@@ -49,8 +50,16 @@ class TaskAssignmentController extends Controller
 
     public function assign(AssignUsersRequest $request, Project $project, Task $task): JsonResponse
     {
-        $this->checkProjectManager($project);
         $userId = $request->user()->id;
+        $isOwner = $project->isOwner($userId);
+        $isProjectManager = $project->isManager($userId);
+
+        if (!$isOwner && !$isProjectManager) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to assign tasks.',
+            ], 403);
+        }
 
         if ($task->is_archived) {
             return response()->json([
@@ -66,15 +75,72 @@ class TaskAssignmentController extends Controller
             ], 404);
         }
 
-        $projectUsers = $project->users()->pluck('users.id')->toArray();
-        $projectUsers[] = $project->created_by;
+        // Find groups managed by this user in this project
+        $managedGroupIds = Group::where('project_id', $project->id)
+            ->where('manager_id', $userId)
+            ->pluck('id')
+            ->toArray();
 
-        foreach ($request->user_ids as $userId) {
-            if (!in_array($userId, $projectUsers)) {
+        // Determine if the task is assigned to one of the caller's groups
+        $taskBelongsToMyGroup = $task->assigned_group_id && in_array($task->assigned_group_id, $managedGroupIds);
+
+        // If the task is assigned to a group that the caller does NOT manage, and caller is not owner
+        if ($task->assigned_group_id && !$taskBelongsToMyGroup && !$isOwner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You can only assign tasks that belong to your group.',
+            ], 403);
+        }
+
+        // If the task is assigned to a group, check if the group is active
+        if ($task->assigned_group_id) {
+            $taskGroup = Group::find($task->assigned_group_id);
+            if ($taskGroup && !$taskGroup->is_active) {
                 return response()->json([
                     'success' => false,
-                    'message' => "User ID {$userId} is not a member of this project",
+                    'message' => 'Cannot assign tasks in an inactive group.',
                 ], 422);
+            }
+        }
+
+        // Validate assignees
+        if (!$isOwner && $taskBelongsToMyGroup) {
+            // Group manager assigning to a group task: assignees must be group members
+            $assignedGroup = Group::find($task->assigned_group_id);
+            if (!$assignedGroup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The assigned group no longer exists.',
+                ], 404);
+            }
+            if (!$assignedGroup->is_active) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot assign tasks in an inactive group.',
+                ], 422);
+            }
+            $groupMemberIds = $assignedGroup->members()->pluck('users.id')->toArray();
+
+            foreach ($request->user_ids as $assigneeId) {
+                if (!in_array($assigneeId, $groupMemberIds)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "User ID {$assigneeId} is not a member of this group.",
+                    ], 422);
+                }
+            }
+        } else {
+            // Owner or project manager assigning to a non-group task: assignees must be project members
+            $projectUsers = $project->users()->pluck('users.id')->toArray();
+            $projectUsers[] = $project->created_by;
+
+            foreach ($request->user_ids as $assigneeId) {
+                if (!in_array($assigneeId, $projectUsers)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "User ID {$assigneeId} is not a member of this project",
+                    ], 422);
+                }
             }
         }
 

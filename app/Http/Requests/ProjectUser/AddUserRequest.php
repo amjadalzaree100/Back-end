@@ -15,7 +15,7 @@ class AddUserRequest extends FormRequest
     {
         return [
             'user_id' => 'required|exists:users,id',
-            'role' => 'required|in:manager,member,observer',
+            'role' => 'required|in:manager,user,observer',
         ];
     }
 
@@ -25,7 +25,7 @@ class AddUserRequest extends FormRequest
             'user_id.required' => 'User ID is required',
             'user_id.exists' => 'User does not exist',
             'role.required' => 'Role is required',
-            'role.in' => 'Role must be manager, member, or observer',
+            'role.in' => 'Role must be manager, user, or observer',
         ];
     }
 }

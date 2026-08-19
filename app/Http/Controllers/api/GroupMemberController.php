@@ -54,6 +54,13 @@ class GroupMemberController extends Controller
             ], 403);
         }
 
+        if (!$group->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot modify members of an inactive group.'
+            ], 422);
+        }
+
         $projectUsers = $project->users()->pluck('users.id')->toArray();
         $projectUsers[] = $project->created_by;
 
@@ -105,6 +112,13 @@ class GroupMemberController extends Controller
                 'success' => false,
                 'message' => 'You do not have permission to remove members'
             ], 403);
+        }
+
+        if (!$group->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot modify members of an inactive group.'
+            ], 422);
         }
 
         if ($group->manager_id === $userId) {
@@ -195,11 +209,35 @@ class GroupMemberController extends Controller
         $currentUserId = $request->user()->id;
         $newManagerId = $request->new_manager_id;
 
+        // Validate the new manager is not the project owner
+        if ($project->isOwner($newManagerId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The project owner cannot be a group manager.'
+            ], 422);
+        }
+
+        // Validate the new manager has the 'manager' role in the project
+        $newManagerRole = $project->getUserRole($newManagerId);
+        if ($newManagerRole !== 'manager') {
+            return response()->json([
+                'success' => false,
+                'message' => 'The selected user must have the manager role in this project.'
+            ], 422);
+        }
+
         if (!$project->isOwner($currentUserId) && !$group->isManager($currentUserId)) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to transfer manager role'
             ], 403);
+        }
+
+        if (!$group->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot modify members of an inactive group.'
+            ], 422);
         }
 
         try {
@@ -266,6 +304,22 @@ class GroupMemberController extends Controller
         $userId = $request->user_id;
         $currentUserId = $request->user()->id;
 
+        // Validate the new manager has the 'manager' role in the project
+        $newManagerRole = $project->getUserRole($userId);
+        if ($newManagerRole !== 'manager') {
+            return response()->json([
+                'success' => false,
+                'message' => 'The selected user must have the manager role in this project.'
+            ], 422);
+        }
+
+        if (!$group->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot modify members of an inactive group.'
+            ], 422);
+        }
+
         try {
             DB::beginTransaction();
 
@@ -290,7 +344,6 @@ class GroupMemberController extends Controller
                     'manager_id' => $group->manager_id,
                 ]
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to set group manager: ' . $e->getMessage(), [
@@ -305,5 +358,4 @@ class GroupMemberController extends Controller
             ], 500);
         }
     }
-
 }
