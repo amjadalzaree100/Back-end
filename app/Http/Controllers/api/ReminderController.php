@@ -251,33 +251,41 @@ class ReminderController extends Controller
      * Get all reminders for a specific project and user.
      */
 
-    public function getProjectReminders(Request $request, Project $project): JsonResponse
-    {
-        try {
-            $reminders = $request->user()
-                ->reminders()
-                ->whereHas('tasks', function ($query) use ($project) {
-                    $query->where('project_id', $project->id);
-                })
-                ->with('tasks')
-                ->orderBy('remind_at', 'asc')
-                ->get();
+public function getProjectReminders(Request $request, Project $project): JsonResponse
+{
+    try {
+        $userId = $request->user()->id;
 
-            return response()->json([
-                'success' => true,
-                'data' => ReminderResource::collection($reminders),
-                'total' => $reminders->count(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch project reminders: ' . $e->getMessage(), [
-                'user_id' => $request->user()->id,
-                'project_id' => $project->id,
-                'trace' => $e->getTraceAsString(),
-            ]);
+        if (!$project->isOwner($userId) && !$project->hasUser($userId)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to load project reminders. Please try again later.'
-            ], 500);
+                'message' => 'You do not have access to this project.'
+            ], 403);
         }
+
+        $reminders = $request->user()
+            ->reminders()
+            ->whereHas('tasks', function ($query) use ($project) {
+                $query->where('project_id', $project->id);
+            })
+            ->with('tasks')
+            ->orderBy('remind_at', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => ReminderResource::collection($reminders),
+            'total' => $reminders->count(),
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Failed to fetch project reminders: ' . $e->getMessage(), [
+            'user_id' => $request->user()->id,
+            'project_id' => $project->id,
+            'trace' => $e->getTraceAsString(),
+        ]);
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to load project reminders. Please try again later.'
+        ], 500);
     }
-}
+}}
