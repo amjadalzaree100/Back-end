@@ -130,6 +130,27 @@ class TaskController extends Controller
             ], 404);
         }
 
+        if (!$group->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot create tasks for an inactive group.',
+            ], 422);
+        }
+
+        // If caller is not owner, they can only create tasks for groups they manage
+        $userId = $request->user()->id;
+        $isOwner = $project->isOwner($userId);
+
+        if (!$isOwner) {
+            $isGroupManager = $group->isManager($userId);
+            if (!$isGroupManager) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only create tasks for groups you manage.',
+                ], 403);
+            }
+        }
+
         $maxPosition = Task::where('project_id', $project->id)
             ->max('position') ?? -1;
 
@@ -165,19 +186,6 @@ class TaskController extends Controller
 
         $task->load(['status', 'creator', 'assignedGroup']);
 
-        if ($task->assignedGroup) {
-            $groupMemberIds = $task->assignedGroup->members()->pluck('users.id')->toArray();
-
-            if (!empty($groupMemberIds)) {
-                TaskNotificationEvent::dispatch(
-                    userIds: $groupMemberIds,
-                    scenario: 'assigned',
-                    task: $task,
-                    actor: $request->user(),
-                );
-            }
-        }
-
         return response()->json([
             'success' => true,
             'message' => 'Group task created successfully',
@@ -194,6 +202,13 @@ class TaskController extends Controller
     {
         $userId = $request->user()->id;
         $this->checkProjectManager($project);
+
+        if (!$group->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot create tasks for an inactive group.',
+            ], 422);
+        }
 
         $allowSubtasks = $request->input('allow_subtasks', false);
         $canBeAssigned = !$allowSubtasks;
@@ -296,6 +311,13 @@ class TaskController extends Controller
                 'success' => false,
                 'message' => 'Parent task does not belong to this group',
             ], 404);
+        }
+
+        if (!$group->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot create subtasks for an inactive group.',
+            ], 422);
         }
 
         // Check that parent task allows subtasks
@@ -447,7 +469,23 @@ class TaskController extends Controller
         $isOwner = $project->isOwner($userId);
         $isTaskCreator = $task->created_by === $userId;
 
-        if (!$isOwner && !$isTaskCreator) {
+        // Find groups managed by this user in this project
+        $managedGroupIds = [];
+        if (!$isOwner) {
+            $managedGroupIds = Group::where('project_id', $project->id)
+                ->where('manager_id', $userId)
+                ->pluck('id')
+                ->toArray();
+        }
+
+        // Determine if user is a group manager for this task's group
+        $isTaskGroupManager = !$isOwner && (
+            ($task->assigned_group_id && in_array($task->assigned_group_id, $managedGroupIds)) ||
+            ($task->group_id && in_array($task->group_id, $managedGroupIds))
+        );
+
+        // Authorization check
+        if (!$isOwner && !$isTaskGroupManager && !$isTaskCreator) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to update this task.',
@@ -462,29 +500,99 @@ class TaskController extends Controller
             ], 422);
         }
 
-        // 3. Ensure all assignees are members of the project
-        if ($request->has('assignees')) {
-            $assignees = $request->assignees;
-            $validMembers = $project->users()->whereIn('user_id', $assignees)->pluck('user_id')->toArray();
-            $invalid = array_diff($assignees, $validMembers);
-            if (!empty($invalid)) {
+        // Validate assigned_to for group managers
+        if ($request->has('assigned_to') && $isTaskGroupManager && !$isOwner && $task->assigned_group_id) {
+            $assignedGroup = Group::find($task->assigned_group_id);
+            if (!$assignedGroup) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Some users are not members of this project: ' . implode(', ', $invalid),
+                    'message' => 'The assigned group no longer exists.',
+                ], 404);
+            }
+            $groupMemberIds = $assignedGroup->members()->pluck('users.id')->toArray();
+            if ($request->assigned_to !== null && !in_array($request->assigned_to, $groupMemberIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The assigned user must be a member of this group.',
                 ], 422);
             }
         }
 
-        // 4. Allowed fields for update (exclude group_id, allow_subtasks, auto_status, can_be_assigned, assigned_group_id)
-        $allowedFields = ['title', 'description', 'priority', 'due_date', 'assigned_to', 'position'];
+        // 3. Validate assignees are valid
+        if ($request->has('assignees')) {
+            if ($isTaskGroupManager && !$isOwner && $task->assigned_group_id) {
+                // Group manager: assignees must be group members
+                $assignedGroup = Group::find($task->assigned_group_id);
+                if (!$assignedGroup) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The assigned group no longer exists.',
+                    ], 404);
+                }
+                $groupMemberIds = $assignedGroup->members()->pluck('users.id')->toArray();
+                $assignees = $request->assignees;
+                $invalid = array_diff($assignees, $groupMemberIds);
+                if (!empty($invalid)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Some users are not members of this group: ' . implode(', ', $invalid),
+                    ], 422);
+                }
+            } else {
+                // Owner or creator: assignees must be project members
+                $assignees = $request->assignees;
+                $validMembers = $project->users()->whereIn('user_id', $assignees)->pluck('user_id')->toArray();
+                $invalid = array_diff($assignees, $validMembers);
+                if (!empty($invalid)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Some users are not members of this project: ' . implode(', ', $invalid),
+                    ], 422);
+                }
+            }
+        }
+
+        // 4. Determine allowed fields based on role
         if ($isOwner) {
+            // Owner can update everything including assigned_group_id and status_id
+            $allowedFields = ['title', 'description', 'priority', 'due_date', 'assigned_to', 'position', 'assigned_group_id'];
             $updateData = $request->only($allowedFields);
+
+            // Validate assigned_group_id if being changed
+            if ($request->has('assigned_group_id') && $request->assigned_group_id !== null) {
+                $targetGroup = Group::where('id', $request->assigned_group_id)
+                    ->where('project_id', $project->id)
+                    ->first();
+                if (!$targetGroup) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The target group does not belong to this project.',
+                    ], 422);
+                }
+            }
+        } elseif ($isTaskGroupManager) {
+            // Group manager can update all fields + assigned_group_id (only to null)
+            $allowedFields = ['title', 'description', 'priority', 'due_date', 'assigned_to', 'position'];
+            $updateData = $request->only($allowedFields);
+
+            // Group manager can only unassign from group (set to null), not reassign to another group
+            // This only applies to tasks that have an assigned_group_id (group tasks, not manager tasks)
+            if ($request->has('assigned_group_id') && $task->assigned_group_id) {
+                if ($request->assigned_group_id === null) {
+                    $updateData['assigned_group_id'] = null;
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You can only remove the group assignment, not change it to another group.',
+                    ], 422);
+                }
+            }
         } else {
-            // Task creator cannot update assignment or position
+            // Task creator (non-owner, non-manager): basic fields only
             $updateData = $request->only(['title', 'description', 'priority', 'due_date']);
         }
 
-        // 5. Prevent direct position update (use reorder / updateStatus endpoints instead)
+        // 5. Prevent direct position update (use reorder endpoint instead)
         if (isset($updateData['position'])) {
             return response()->json([
                 'success' => false,
@@ -497,7 +605,8 @@ class TaskController extends Controller
 
             $task->update($updateData);
 
-            if ($isOwner && $request->has('assignees') && $task->canBeAssigned()) {
+            // Sync assignees if owner or group manager
+            if (($isOwner || $isTaskGroupManager) && $request->has('assignees') && $task->canBeAssigned()) {
                 $task->assignees()->sync($request->assignees);
             }
 
@@ -1145,7 +1254,7 @@ class TaskController extends Controller
      * Adjusts positions of remaining tasks in the same status.
      * Prevents deletion if the task has subtasks (parent task).
      */
-    public function destroy(Project $project, Task $task): JsonResponse
+    public function destroy(Project $project, Task $task, Request $request): JsonResponse
     {
 
         if ($task->is_archived) {
@@ -1162,15 +1271,51 @@ class TaskController extends Controller
             ], 404);
         }
 
-        // Only project owner or manager can delete tasks
-        $this->checkProjectManager($project);
-
         // Prevent deletion if task has subtasks
         if ($task->subTasks()->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot delete a parent task that has subtasks. Delete or reassign subtasks first.',
             ], 422);
+        }
+
+        $userId = $request->user()->id;
+        $isOwner = $project->isOwner($userId);
+        $isTaskCreator = $task->created_by === $userId;
+
+        // Find groups managed by this user
+        $managedGroupIds = [];
+        if (!$isOwner) {
+            $managedGroupIds = Group::where('project_id', $project->id)
+                ->where('manager_id', $userId)
+                ->pluck('id')
+                ->toArray();
+        }
+
+        $isTaskGroupManager = !$isOwner && (
+            ($task->assigned_group_id && in_array($task->assigned_group_id, $managedGroupIds)) ||
+            ($task->group_id && in_array($task->group_id, $managedGroupIds))
+        );
+
+        // Authorization:
+        // - Owner: can delete any task
+        // - Group manager: can delete tasks assigned to their group or manager tasks in their group
+        // - Task creator: can delete their own tasks (no subtasks check already done above)
+        $canDelete = false;
+
+        if ($isOwner) {
+            $canDelete = true;
+        } elseif ($isTaskGroupManager) {
+            $canDelete = true;
+        } elseif ($isTaskCreator) {
+            $canDelete = true;
+        }
+
+        if (!$canDelete) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to delete this task.',
+            ], 403);
         }
 
         try {
@@ -1553,6 +1698,185 @@ class TaskController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load group tasks. Please try again later.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get tasks related to a specific group that have no status (not yet placed on the board).
+     * Includes both manager tasks (group_id) and group tasks (assigned_group_id).
+     * Excludes subtasks (they are managed under their parent).
+     */
+    public function getGroupBoard(Project $project, Group $group, Request $request): JsonResponse
+    {
+        try {
+            $userId = $request->user()->id;
+
+            if ($group->project_id !== $project->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Group does not belong to this project.',
+                ], 404);
+            }
+
+            // Check access: owner, group manager, or group member
+            $isOwner = $project->isOwner($userId);
+            $isGroupManager = $group->isManager($userId);
+            $isGroupMember = $group->isMember($userId);
+
+            if (!$isOwner && !$isGroupManager && !$isGroupMember) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have access to this group board.',
+                ], 403);
+            }
+
+            $tasks = Task::where('project_id', $project->id)
+                ->whereNull('status_id')
+                ->whereNull('parent_task_id')
+                ->where(function ($q) use ($group) {
+                    $q->where('group_id', $group->id)
+                        ->orWhere('assigned_group_id', $group->id);
+                })
+                ->where('is_archived', false)
+                ->with([
+                    'creator',
+                    'assignee',
+                    'taskAssignments.user',
+                    'assignedGroup',
+                    'group',
+                    'subTasks.status',
+                    'subTasks.assignee',
+                ])
+                ->orderBy('position')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => TaskResource::collection($tasks),
+                'total' => $tasks->count(),
+                'group' => [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch group board: ' . $e->getMessage(), [
+                'group_id' => $group->id,
+                'project_id' => $project->id,
+                'user_id' => $request->user()->id ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load group board. Please try again later.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all tasks related to a specific group, grouped by status for Kanban view.
+     * Includes both manager tasks (group_id) and group tasks (assigned_group_id).
+     * Excludes subtasks (they are managed under their parent).
+     */
+    public function getGroupKanban(Project $project, Group $group, Request $request): JsonResponse
+    {
+        try {
+            $userId = $request->user()->id;
+
+            if ($group->project_id !== $project->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Group does not belong to this project.',
+                ], 404);
+            }
+
+            // Check access: owner, group manager, or group member
+            $isOwner = $project->isOwner($userId);
+            $isGroupManager = $group->isManager($userId);
+            $isGroupMember = $group->isMember($userId);
+
+            if (!$isOwner && !$isGroupManager && !$isGroupMember) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have access to this group kanban.',
+                ], 403);
+            }
+
+            $statuses = $project->taskStatuses()
+                ->orderBy('position')
+                ->get();
+
+            $tasks = Task::where('project_id', $project->id)
+                ->whereNull('parent_task_id')
+                ->where(function ($q) use ($group) {
+                    $q->where('group_id', $group->id)
+                        ->orWhere('assigned_group_id', $group->id);
+                })
+                ->where('is_archived', false)
+                ->with([
+                    'status',
+                    'creator',
+                    'assignee',
+                    'taskAssignments.user',
+                    'assignedGroup',
+                    'group',
+                    'subTasks.status',
+                    'subTasks.assignee',
+                    'subTasks.taskAssignments',
+                ])
+                ->orderBy('position')
+                ->get();
+
+            $grouped = $tasks->groupBy(function ($task) {
+                return $task->status_id ?? 'no-status';
+            });
+
+            $kanban = $statuses->map(function ($status) use ($grouped) {
+                $statusTasks = $grouped->get($status->id, collect());
+
+                return [
+                    'status' => [
+                        'id' => $status->id,
+                        'name' => $status->name,
+                        'position' => $status->position,
+                    ],
+                    'tasks' => TaskResource::collection($statusTasks),
+                    'tasks_count' => $statusTasks->count(),
+                ];
+            });
+
+            // Add no-status column if there are tasks without a status
+            if ($grouped->has('no-status')) {
+                $noStatusTasks = $grouped->get('no-status');
+
+                $kanban->push([
+                    'status' => null,
+                    'tasks' => TaskResource::collection($noStatusTasks),
+                    'tasks_count' => $noStatusTasks->count(),
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $kanban->values(),
+                'total_tasks' => $tasks->count(),
+                'group' => [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch group kanban: ' . $e->getMessage(), [
+                'group_id' => $group->id,
+                'project_id' => $project->id,
+                'user_id' => $request->user()->id ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load group kanban. Please try again later.',
             ], 500);
         }
     }

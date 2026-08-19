@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -64,6 +65,18 @@ class Group extends Model
         return $this->hasMany(Task::class, 'group_id');
     }
 
+    public function assignedTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assigned_group_id');
+    }
+
+    public function allRelatedTasks()
+    {
+        return Task::where('group_id', $this->id)
+            ->orWhere('assigned_group_id', $this->id)
+            ->get();
+    }
+
     // ============== Helper Methods ==============
 
     public function isManager(int $userId): bool
@@ -115,7 +128,7 @@ class Group extends Model
 
         $this->update(['manager_id' => $newManagerId]);
 
-        if ($oldManagerId !== $this->project->created_by) {
+        if ($oldManagerId && $oldManagerId !== $this->project->created_by) {
             $this->addMember($oldManagerId, $newManagerId);
         }
 

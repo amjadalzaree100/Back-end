@@ -57,8 +57,17 @@ class TaskPolicy
      */
     public function createGroupTask(User $user, Task $task): bool
     {
-        // Only project owner can assign tasks to entire groups
-        return $task->project->isOwner($user->id);
+        // Project owner can assign tasks to any group
+        if ($task->project->isOwner($user->id)) {
+            return true;
+        }
+
+        // Project manager can also create group tasks
+        if ($task->project->isManager($user->id)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -121,8 +130,20 @@ class TaskPolicy
             return true;
         }
 
+        // Group manager can update tasks assigned to their group
+        if ($task->assigned_group_id) {
+            $group = $task->assignedGroup;
+            if ($group && $group->isManager($user->id)) {
+                return true;
+            }
+        }
+
         // Task creator can update their own tasks
-        return $task->created_by === $user->id;
+        if ($task->created_by === $user->id) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -137,6 +158,14 @@ class TaskPolicy
         // Project owner can delete any task
         if ($task->project->isOwner($user->id)) {
             return true;
+        }
+
+        // Group manager can delete tasks assigned to their group
+        if ($task->assigned_group_id) {
+            $group = $task->assignedGroup;
+            if ($group && $group->isManager($user->id)) {
+                return true;
+            }
         }
 
         // Task creator can delete their own tasks only if no subtasks exist
@@ -166,9 +195,9 @@ class TaskPolicy
             return true;
         }
 
-        // Group manager can assign tasks within their group
-        if ($task->group_id) {
-            $group = $task->group;
+        // Group manager can assign tasks that are assigned to their group
+        if ($task->assigned_group_id) {
+            $group = $task->assignedGroup;
             return $group && $group->isManager($user->id);
         }
 
