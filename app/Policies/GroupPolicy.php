@@ -30,6 +30,7 @@ class GroupPolicy
      */
     public function create(User $user, Group $group): bool
     {
+        // Owner or project manager can create groups
         return $group->project->isOwner($user->id) || $group->project->isManager($user->id);
     }
     /**
@@ -54,7 +55,36 @@ class GroupPolicy
      */
     public function delete(User $user, Group $group): bool
     {
-        // Only project owner can delete groups
+        // Group manager can deactivate the group
+        if ($group->isManager($user->id)) {
+            return true;
+        }
+
+        // Project owner can delete (after cleanup)
+        return $group->project->isOwner($user->id);
+    }
+
+    /**
+     * Determine if a user can expel all members from a group
+     *
+     * @param User $user The authenticated user
+     * @param Group $group The group to expel members from
+     * @return bool
+     */
+    public function expelAllMembers(User $user, Group $group): bool
+    {
+        return $group->project->isOwner($user->id);
+    }
+
+    /**
+     * Determine if a user can detach all tasks from a group
+     *
+     * @param User $user The authenticated user
+     * @param Group $group The group to detach tasks from
+     * @return bool
+     */
+    public function detachTasks(User $user, Group $group): bool
+    {
         return $group->project->isOwner($user->id);
     }
 
@@ -67,6 +97,11 @@ class GroupPolicy
      */
     public function addMember(User $user, Group $group): bool
     {
+        // Cannot modify inactive group
+        if (!$group->is_active) {
+            return false;
+        }
+
         // Project owner or group manager can add members
         return $group->project->isOwner($user->id) || $group->isManager($user->id);
     }
@@ -80,6 +115,11 @@ class GroupPolicy
      */
     public function removeMember(User $user, Group $group): bool
     {
+        // Cannot modify inactive group
+        if (!$group->is_active) {
+            return false;
+        }
+
         // Project owner or group manager can remove members
         return $group->project->isOwner($user->id) || $group->isManager($user->id);
     }
@@ -93,8 +133,11 @@ class GroupPolicy
      */
     public function transferManager(User $user, Group $group): bool
     {
-        // Current manager can transfer their role
-        // Project owner can also transfer manager role
+        // Cannot modify inactive group
+        if (!$group->is_active) {
+            return false;
+        }
+
         return $group->isManager($user->id) || $group->project->isOwner($user->id);
     }
 
@@ -103,6 +146,11 @@ class GroupPolicy
      */
     public function setManager(User $user, Group $group): bool
     {
+        // Cannot modify inactive group
+        if (!$group->is_active) {
+            return false;
+        }
+
         // Project owner, project manager, or current group manager can set manager
         return $group->project->isOwner($user->id)
             || $group->project->isManager($user->id)
