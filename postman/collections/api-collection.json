@@ -2473,6 +2473,67 @@
                     "response": []
                 },
                 {
+                    "name": "get-transfer-history",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET the transfer history of a task — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/tasks/{task}/transfer-history",
+                            "host": ["{{baseURL}}"],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks",
+                                "{task}",
+                                "transfer-history"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "transfer-task",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "POST transfer a task to another project. Body: target_project_id (REQUIRED, must exist in projects), note (optional, nullable, string, max 500). Only the project owner can transfer tasks.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"target_project_id\": 2,\n    \"note\": \"Moving task to a new project\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/tasks/{task}/transfer",
+                            "host": ["{{baseURL}}"],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks",
+                                "{task}",
+                                "transfer"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "get-manager-kanban",
                     "request": {
                         "method": "GET",
@@ -2488,6 +2549,26 @@
                             "raw": "{{baseURL}}/manager-kanban",
                             "host": ["{{baseURL}}"],
                             "path": ["manager-kanban"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "my-kanban-tasks",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET my kanban tasks (all tasks where the current user is assigned) — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/my-kanban-tasks",
+                            "host": ["{{baseURL}}"],
+                            "path": ["my-kanban-tasks"]
                         }
                     },
                     "response": []
@@ -3844,6 +3925,107 @@
                                 "{group}",
                                 "transfer-manager"
                             ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get-group-manager",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET the manager of a group — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/manager",
+                            "host": ["{{baseURL}}"],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "groups",
+                                "{group}",
+                                "manager"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "set-group-manager",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "POST set/change the group manager. Body: user_id (REQUIRED, must exist in users, must be a member of the group first, cannot be the project owner).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user_id\": 1\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/set-manager",
+                            "host": ["{{baseURL}}"],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "groups",
+                                "{group}",
+                                "set-manager"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "my-managed-groups",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET all groups where the current user is the manager — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/my-managed-groups",
+                            "host": ["{{baseURL}}"],
+                            "path": ["my-managed-groups"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "my-groups",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET all groups where the current user is a member — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/my-groups",
+                            "host": ["{{baseURL}}"],
+                            "path": ["my-groups"]
                         }
                     },
                     "response": []
