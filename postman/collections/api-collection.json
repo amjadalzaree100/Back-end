@@ -960,10 +960,10 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "PUT accept invitation. Body: status (REQUIRED) [accepted,rejected]. The invitation is identified by {invitation} in the URL, but the FormRequest still requires status in the body.",
+                        "description": "PUT accept invitation. No body required — the action is determined by the endpoint (/accept).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"status\": \"accepted\"\n}",
+                            "raw": "",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -989,10 +989,10 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "PUT reject invitation. Body: status (REQUIRED) [accepted,rejected]. The invitation is identified by {invitation} in the URL, but the FormRequest still requires status in the body.",
+                        "description": "PUT reject invitation. No body required — the action is determined by the endpoint (/reject).",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"status\": \"rejected\"\n}",
+                            "raw": "",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1903,7 +1903,7 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "POST create task (assignable variant). Body: title (required, string, max 255), description (optional, nullable, max 5000), priority (optional) [low,medium,high,urgent], due_date (optional, date >= today), status_id (optional, must exist in task_statuses), allow_subtasks (optional, boolean, default false), assigned_to (optional, must exist in users), assignees (optional, array of existing user ids).",
+                        "description": "POST create task (assignable variant). Body: title (required, string, max 255), description (optional, nullable, max 5000), priority (optional) [low,medium,high,urgent], due_date (optional, date >= today), status_id (optional, must exist in task_statuses), allow_subtasks (optional, boolean, default false), assigned_to (optional, integer, must exist in users) — single assignee.",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"title\": \"New Task\",\n    \"description\": \"Task description\",\n    \"priority\": \"medium\",\n    \"due_date\": \"2026-08-20\",\n    \"status_id\": 1,\n    \"allow_subtasks\": false,\n    \"assigned_to\": 2,\n    \"assignees\": [2, 3]\n}",
@@ -1932,7 +1932,7 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "POST create task (parent variant — allows subtasks). Body: title (required, string, max 255), description (optional, nullable, max 5000), priority (optional) [low,medium,high,urgent], due_date (optional, date >= today), status_id (optional, must exist in task_statuses), allow_subtasks (true — enables subtasks). assigned_to and assignees are PROHIBITED when allow_subtasks is true.",
+                        "description": "POST create task (parent variant — allows subtasks). Body: title (required, string, max 255), description (optional, nullable, max 5000), priority (optional) [low,medium,high,urgent], due_date (optional, date >= today), status_id (optional, must exist in task_statuses), allow_subtasks (true — enables subtasks). assigned_to is PROHIBITED when allow_subtasks is true.",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"title\": \"Parent Task\",\n    \"description\": \"Parent task that allows subtasks\",\n    \"priority\": \"high\",\n    \"due_date\": \"2026-08-25\",\n    \"status_id\": 1,\n    \"allow_subtasks\": true\n}",
@@ -1981,7 +1981,7 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "PUT update task. All fields optional: title, description (optional), priority (optional) [low,medium,high,urgent], due_date (optional, date >= today), status_id (optional, must exist in task_statuses — validated but IGNORED by the controller), assigned_to (optional, must exist in users), position (optional, integer >= 0 — validated but REJECTED with 422 when changing status; use reorder-tasks instead), assignees (optional, array of existing user ids).",
+                        "description": "PUT update task. All fields optional: title, description (optional), priority (optional) [low,medium,high,urgent], due_date (optional, date >= today), status_id (optional, must exist in task_statuses — validated but IGNORED by the controller), assigned_to (optional, integer, must exist in users) — single assignee, position (optional, integer >= 0 — validated but REJECTED with 422 when changing status; use reorder-tasks instead).",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"title\": \"Updated Task\",\n    \"description\": \"Updated description\",\n    \"priority\": \"high\"\n}",
@@ -2089,76 +2089,6 @@
                     "response": []
                 },
                 {
-                    "name": "create-manager-task (assignable)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "description": "POST create manager task (assignable variant). Body: title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses), allow_subtasks (optional, boolean, default false), assigned_to (optional, must exist in users), assignees (optional, array of existing user ids).",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"title\": \"Manager Task\",\n    \"description\": \"Task for group manager\",\n    \"priority\": \"medium\",\n    \"due_date\": \"2026-08-20\",\n    \"status_id\": 1,\n    \"allow_subtasks\": false,\n    \"assigned_to\": 2,\n    \"assignees\": [2, 3]\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/manager-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": [
-                                "projects",
-                                "{project}",
-                                "groups",
-                                "{group}",
-                                "manager-tasks"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "create-manager-task (parent - allows subtasks)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "description": "POST create manager task (parent variant — allows subtasks). Body: title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses), allow_subtasks (true — enables subtasks). assigned_to and assignees are PROHIBITED when allow_subtasks is true.",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"title\": \"Manager Parent Task\",\n    \"description\": \"Parent task that allows subtasks\",\n    \"priority\": \"high\",\n    \"due_date\": \"2026-08-25\",\n    \"status_id\": 1,\n    \"allow_subtasks\": true\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/manager-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": [
-                                "projects",
-                                "{project}",
-                                "groups",
-                                "{group}",
-                                "manager-tasks"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
                     "name": "create-subtask",
                     "request": {
                         "method": "POST",
@@ -2169,7 +2099,7 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "POST create subtask. Body: title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses), assigned_to (REQUIRED, array min 1 of existing user ids).",
+                        "description": "POST create subtask. Body: title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses), assigned_to (REQUIRED, integer) — must be a member of the parent task's group.",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"title\": \"Subtask\",\n    \"description\": \"Subtask of parent task\",\n    \"priority\": \"low\",\n    \"due_date\": \"2026-08-22\",\n    \"status_id\": 1,\n    \"assigned_to\": [2]\n}",
@@ -2534,26 +2464,6 @@
                     "response": []
                 },
                 {
-                    "name": "get-manager-kanban",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "description": "GET manager kanban (managerAssignedTasks) — no body.",
-                        "url": {
-                            "raw": "{{baseURL}}/manager-kanban",
-                            "host": ["{{baseURL}}"],
-                            "path": ["manager-kanban"]
-                        }
-                    },
-                    "response": []
-                },
-                {
                     "name": "my-kanban-tasks",
                     "request": {
                         "method": "GET",
@@ -2682,43 +2592,6 @@
                             "raw": "{{baseURL}}/my-assigned-tasks",
                             "host": ["{{baseURL}}"],
                             "path": ["my-assigned-tasks"]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "update-assignment-status",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "description": "DEAD ENDPOINT — route registered but TaskController::updateTaskAssignmentStatus is commented out in the backend; calling this returns an error. Body shown is illustrative/invented.",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseURL}}/projects/{project}/tasks/{task}/assignments/{assignmentId}/status",
-                            "host": ["{{baseURL}}"],
-                            "path": [
-                                "projects",
-                                "{project}",
-                                "tasks",
-                                "{task}",
-                                "assignments",
-                                "{assignmentId}",
-                                "status"
-                            ]
                         }
                     },
                     "response": []
@@ -4053,13 +3926,13 @@
                         ],
                         "description": "POST expel all members from a group (owner-only). Removes all members from the group and sets manager_id to null — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/projects/{{project_id}}/groups/{{group_id}}/expel-all-members",
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/expel-all-members",
                             "host": ["{{baseURL}}"],
                             "path": [
                                 "projects",
-                                "{{project_id}}",
+                                "{project}",
                                 "groups",
-                                "{{group_id}}",
+                                "{group}",
                                 "expel-all-members"
                             ]
                         }
@@ -4089,13 +3962,13 @@
                         ],
                         "description": "POST detach all tasks from a group (owner-only). Sets assigned_group_id to null — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/projects/{{project_id}}/groups/{{group_id}}/detach-tasks",
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/detach-tasks",
                             "host": ["{{baseURL}}"],
                             "path": [
                                 "projects",
-                                "{{project_id}}",
+                                "{project}",
                                 "groups",
-                                "{{group_id}}",
+                                "{group}",
                                 "detach-tasks"
                             ]
                         }
@@ -4125,13 +3998,13 @@
                         ],
                         "description": "GET tasks related to a group that have no status (not yet on the kanban board) — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/projects/{{project_id}}/groups/{{group_id}}/board",
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/board",
                             "host": ["{{baseURL}}"],
                             "path": [
                                 "projects",
-                                "{{project_id}}",
+                                "{project}",
                                 "groups",
-                                "{{group_id}}",
+                                "{group}",
                                 "board"
                             ]
                         }
@@ -4161,15 +4034,115 @@
                         ],
                         "description": "GET all tasks related to a group grouped by status for Kanban view — no body.",
                         "url": {
-                            "raw": "{{baseURL}}/projects/{{project_id}}/groups/{{group_id}}/kanban",
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/kanban",
                             "host": ["{{baseURL}}"],
                             "path": [
                                 "projects",
-                                "{{project_id}}",
+                                "{project}",
                                 "groups",
-                                "{{group_id}}",
+                                "{group}",
                                 "kanban"
                             ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get-group-completed-tasks",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET all completed group tasks for a specific group (tasks where assigned_group_id matches the group and completed_at is not null). Returns tasks ordered by completed_at desc.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/completed-tasks",
+                            "host": ["{{baseURL}}"],
+                            "path": ["projects", "{project}", "groups", "{group}", "completed-tasks"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get-group-archived-tasks",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET all archived group tasks for a specific group (tasks where assigned_group_id matches the group and is_archived is true). Returns tasks ordered by updated_at desc.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/archived-tasks",
+                            "host": ["{{baseURL}}"],
+                            "path": ["projects", "{project}", "groups", "{group}", "archived-tasks"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get-group-assigned-tasks",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET group tasks that are assigned to at least one member of the group (tasks where assigned_group_id matches the group and assigned_to is a group member). Returns tasks ordered by created_at desc.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/assigned-tasks",
+                            "host": ["{{baseURL}}"],
+                            "path": ["projects", "{project}", "groups", "{group}", "assigned-tasks"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get-group-unassigned-tasks",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET group tasks that are NOT assigned to any member of the group (tasks where assigned_group_id matches the group but assigned_to is null or not a group member). Returns tasks ordered by created_at desc.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/unassigned-tasks",
+                            "host": ["{{baseURL}}"],
+                            "path": ["projects", "{project}", "groups", "{group}", "unassigned-tasks"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "transfer-group-manager-by-id",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "POST transfer group manager role to the user identified by {userId} in the URL. Alternative to the body-based transfer-manager endpoint. The new manager must be a current member of the group and not the project owner.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/transfer-manager/{userId}",
+                            "host": ["{{baseURL}}"],
+                            "path": ["projects", "{project}", "groups", "{group}", "transfer-manager", "{userId}"]
                         }
                     },
                     "response": []
