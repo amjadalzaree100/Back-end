@@ -263,6 +263,9 @@ Route::post('/projects/{project}/tasks/{task}/transfer', [TaskController::class,
 Route::get('/manager-kanban', [TaskController::class, 'managerAssignedTasks'])
     ->middleware(['auth:sanctum', 'is.active', 'verified']);
 
+Route::get('/manager-groups-kanban', [TaskController::class, 'managerGroupsKanban'])
+    ->middleware(['auth:sanctum', 'is.active', 'verified']);
+
 // TASK ASSIGNMENTS ROUTES - Read only (always accessible)
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
     Route::prefix('projects/{project}/tasks/{task}/assignments')->group(function () {

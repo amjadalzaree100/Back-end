@@ -719,11 +719,115 @@ class TaskController extends Controller
         }
     }
 
+    /**
+     * Get all tasks from the groups managed by the authenticated manager,
+     * within a specific project, grouped by status for Kanban view.
+     * All project statuses are returned, even empty ones.
+     */
+    public function managerGroupsKanban(Request $request): JsonResponse
+    {
+        try {
+            $userId = $request->user()->id;
+            $projectId = $request->input('project_id');
+
+            if (!$projectId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'project_id parameter is required'
+                ], 422);
+            }
+
+            $project = Project::find($projectId);
+
+            if (!$project) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Project not found'
+                ], 404);
+            }
+
+            // 1. Get all groups where user is manager, within this project
+            $groupIds = Group::where('project_id', $project->id)
+                ->where('manager_id', $userId)
+                ->pluck('id')
+                ->toArray();
+
+            // 2. Get all project statuses (including empty ones)
+            $statuses = $project->taskStatuses()
+                ->orderBy('position')
+                ->get();
+
+            $grouped = collect();
+
+            if (!empty($groupIds)) {
+                $tasks = Task::with([
+                    'status',
+                    'creator',
+                    'assignee',
+                    'taskAssignments.user',
+                    'assignedGroup',
+                    'group',
+                    'subTasks.status',
+                    'subTasks.assignee',
+                    'subTasks.taskAssignments',
+                ])
+                    ->where('project_id', $project->id)
+                    ->whereNull('parent_task_id')
+                    ->where(function ($q) use ($groupIds) {
+                        $q->whereIn('group_id', $groupIds)
+                            ->orWhereIn('assigned_group_id', $groupIds);
+                    })
+                    ->where('is_archived', false)
+                    ->orderBy('position')
+                    ->get();
+
+                $grouped = $tasks->groupBy(function ($task) {
+                    return $task->status_id ?? 'no-status';
+                });
+            }
+
+            $kanban = $statuses->map(function ($status) use ($grouped) {
+                $statusTasks = $grouped->get($status->id, collect());
+
+                return [
+                    'status' => [
+                        'id' => $status->id,
+                        'name' => $status->name,
+                        'position' => $status->position,
+                    ],
+                    'tasks' => TaskResource::collection($statusTasks),
+                    'tasks_count' => $statusTasks->count(),
+                ];
+            });
+
+            $totalTasks = $kanban->sum('tasks_count');
+
+            return response()->json([
+                'success' => true,
+                'data' => $kanban->values(),
+                'total_tasks' => $totalTasks,
+                'groups_count' => count($groupIds),
+                'project' => [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch manager groups kanban: ' . $e->getMessage(), [
+                'user_id' => $request->user()->id,
+                'project_id' => $request->input('project_id'),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load kanban. Please try again later.'
+            ], 500);
+        }
+    }
 
     // public function updateTaskAssignmentStatus(Request $request, Task $task, int $assignmentId): JsonResponse
     // {
     //     $userId = $request->user()->id;
-
     //     $assignment = TaskAssignment::where('id', $assignmentId)
     //         ->where('task_id', $task->id)
     //         ->first();
