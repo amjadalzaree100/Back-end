@@ -245,7 +245,7 @@ class GroupMemberController extends Controller
     public function transferManager(TransferManagerRequest $request, Project $project, Group $group): JsonResponse
     {
         $currentUserId = $request->user()->id;
-        $newManagerId = $request->new_manager_id;
+        $newManagerId = $request->route('userId') ?? $request->new_manager_id;
 
         // Validate the new manager is not the project owner
         if ($project->isOwner($newManagerId)) {

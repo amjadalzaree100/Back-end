@@ -215,6 +215,10 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     Route::get('/my-managed-groups', [GroupController::class, 'myManagedGroups']);
     Route::get('/my-groups', [GroupController::class, 'myGroups']);
     Route::get('/projects/{project}/groups/{group}/board', [TaskController::class, 'getGroupBoard']);
+    Route::get('/projects/{project}/groups/{group}/completed-tasks', [TaskController::class, 'getGroupCompletedTasks']);
+    Route::get('/projects/{project}/groups/{group}/archived-tasks', [TaskController::class, 'getGroupArchivedTasks']);
+    Route::get('/projects/{project}/groups/{group}/assigned-tasks', [TaskController::class, 'getGroupAssignedTasks']);
+    Route::get('/projects/{project}/groups/{group}/unassigned-tasks', [TaskController::class, 'getGroupUnassignedTasks']);
     Route::get('/projects/{project}/groups/{group}/kanban', [TaskController::class, 'getGroupKanban']);
 
 
@@ -229,6 +233,7 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'
     Route::post('/projects/{project}/groups/{group}/members', [GroupMemberController::class, 'addMember']);
     Route::delete('/projects/{project}/groups/{group}/members/{userId}', [GroupMemberController::class, 'removeMember']);
     Route::post('/projects/{project}/groups/{group}/transfer-manager', [GroupMemberController::class, 'transferManager']);
+    Route::post('/projects/{project}/groups/{group}/transfer-manager/{userId}', [GroupMemberController::class, 'transferManager']);
     Route::post('/projects/{project}/groups/{group}/set-manager', [GroupMemberController::class, 'setManager']);
     Route::post('/projects/{project}/groups/{group}/expel-all-members', [GroupController::class, 'expelAllMembers']);
     Route::post('/projects/{project}/groups/{group}/detach-tasks', [GroupController::class, 'detachTasks']);
