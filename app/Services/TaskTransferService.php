@@ -26,8 +26,6 @@ class TaskTransferService
         $this->validateTransfer($task, $targetProject);
 
         $sourceProject = $task->project;
-        $defaultStatus = $targetProject->taskStatuses()->first();
-        $newStatusId = $defaultStatus ? $defaultStatus->id : null;
 
         DB::beginTransaction();
 
@@ -42,9 +40,7 @@ class TaskTransferService
             $newTask->transferred_from_task_id = $task->id;
             $newTask->transferred_to_task_id = null;
 
-            if ($newStatusId) {
-                $newTask->status_id = $newStatusId;
-            }
+            $newTask->status_id = null;
 
             $newTask->save();
 
@@ -65,9 +61,7 @@ class TaskTransferService
                 $newSubTask->transferred_from_task_id = $subTask->id;
                 $newSubTask->transferred_to_task_id = null;
 
-                if ($newStatusId) {
-                    $newSubTask->status_id = $newStatusId;
-                }
+                $newSubTask->status_id = null;
 
                 $newSubTask->save();
 
