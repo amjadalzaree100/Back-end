@@ -103,34 +103,34 @@ class GroupController extends Controller
             if ($isOwner) {
                 // Owner can optionally provide a manager_id
                 $managerId = $request->manager_id; // can be null
-
-                // If manager_id is provided, validate it
-                if ($managerId) {
-                    if (!$project->hasUser($managerId)) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'The selected manager must be a member of this project.'
-                        ], 422);
-                    }
-
-                    $managerRole = $project->getUserRole($managerId);
-                    if ($managerRole !== 'manager') {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'The selected manager must have the manager role in this project.'
-                        ], 422);
-                    }
-
-                    if ($project->isOwner($managerId)) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'The project owner cannot be a group manager.'
-                        ], 422);
-                    }
-                }
             } else {
-                // Manager automatically becomes the group manager
-                $managerId = $userId;
+                // Project manager can provide a manager_id, otherwise becomes the group manager
+                $managerId = $request->manager_id ?: $userId;
+            }
+
+            // If manager_id is provided, validate it
+            if ($managerId) {
+                if (!$project->hasUser($managerId)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The selected manager must be a member of this project.'
+                    ], 422);
+                }
+
+                $managerRole = $project->getUserRole($managerId);
+                if ($managerRole !== 'manager') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The selected manager must have the manager role in this project.'
+                    ], 422);
+                }
+
+                if ($project->isOwner($managerId)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The project owner cannot be a group manager.'
+                    ], 422);
+                }
             }
 
             // Validate additional members (if provided)
@@ -161,6 +161,11 @@ class GroupController extends Controller
             // Add manager as member if manager_id is provided
             if ($managerId) {
                 $group->addMember($managerId, $userId);
+            }
+
+            // Ensure a non-owner creator who assigned another manager stays a member
+            if (!$isOwner && $managerId !== $userId) {
+                $group->addMember($userId, $userId);
             }
 
             // Add additional members
