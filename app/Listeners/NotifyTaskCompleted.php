@@ -32,7 +32,7 @@ class NotifyTaskCompleted
             }
             $dependentUserIds = array_merge(
                 $dependentUserIds,
-                $dependent->assignees()->pluck('users.id')->toArray(),
+                $dependent->assigned_to ? [$dependent->assigned_to] : [],
             );
             $dependentUserIds = array_unique($dependentUserIds);
 

@@ -6,7 +6,6 @@ use App\Events\TaskNotificationEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Task\ReorderTasksRequest;
 use App\Http\Requests\Task\StoreGroupTaskRequest;
-use App\Http\Requests\Task\StoreManagerTaskRequest;
 use App\Http\Requests\Task\StoreSubTaskRequest;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
@@ -15,7 +14,6 @@ use App\Http\Resources\TaskResource;
 use App\Models\Group;
 use App\Models\Project;
 use App\Models\Task;
-use App\Models\TaskAssignment;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -39,15 +37,6 @@ class TaskController extends Controller
         $this->checkProjectManager($project);
 
         $allowSubtasks = $request->input('allow_subtasks', false);
-        $canBeAssigned = !$allowSubtasks; // parent tasks cannot be assigned
-
-        // If it's a parent task, prevent assignment fields
-        if ($allowSubtasks && ($request->has('assigned_to') || $request->has('assignees'))) {
-            return response()->json([
-                'success' => false,
-                'message' => 'A parent task (with subtasks) cannot be assigned directly.',
-            ], 422);
-        }
 
         $maxPosition = Task::where('project_id', $project->id)
             ->whereNull('status_id')
@@ -64,16 +53,11 @@ class TaskController extends Controller
                 'priority' => $request->priority ?? 'medium',
                 'due_date' => $request->due_date,
                 'created_by' => $request->user()->id,
-                'assigned_to' => $canBeAssigned ? $request->assigned_to : null,
+                'assigned_to' => $request->assigned_to,
                 'position' => $maxPosition + 1,
                 'allow_subtasks' => $allowSubtasks,
-                'can_be_assigned' => $canBeAssigned,
-                'auto_status' => false, // project parent tasks do not auto-complete
+                'can_be_assigned' => true,
             ]);
-
-            if ($canBeAssigned && $request->has('assignees')) {
-                $task->assignees()->sync($request->assignees);
-            }
 
             DB::commit();
         } catch (\Exception $e) {
@@ -88,17 +72,11 @@ class TaskController extends Controller
             ], 500);
         }
 
-        $task->load(['status', 'creator', 'assignee', 'assignees']);
+        $task->load(['status', 'creator', 'assignee']);
 
-        if ($task->assigned_to || $task->assignees->isNotEmpty()) {
-            $userIds = [];
-            if ($task->assigned_to) {
-                $userIds[] = $task->assigned_to;
-            }
-            $userIds = array_merge($userIds, $task->assignees->pluck('id')->toArray());
-
+        if ($task->assigned_to) {
             TaskNotificationEvent::dispatch(
-                userIds: array_unique($userIds),
+                userIds: [$task->assigned_to],
                 scenario: 'assigned',
                 task: $task,
                 actor: $request->user(),
@@ -118,9 +96,7 @@ class TaskController extends Controller
      */
     public function storeGroupTask(StoreGroupTaskRequest $request, Project $project): JsonResponse
     {
-        $this->checkProjectManager($project);
-
-        $group = Group::where('id', $request->group_id)
+        $group = Group::where('id', $request->assigned_group_id)
             ->where('project_id', $project->id)
             ->first();
 
@@ -130,6 +106,8 @@ class TaskController extends Controller
                 'message' => 'Group not found or does not belong to this project',
             ], 404);
         }
+
+        $allowSubtasks = $request->input('allow_subtasks', false);
 
         $maxPosition = Task::where('project_id', $project->id)
             ->max('position') ?? -1;
@@ -146,8 +124,9 @@ class TaskController extends Controller
                 'priority' => $request->priority ?? 'medium',
                 'due_date' => $request->due_date,
                 'created_by' => $request->user()->id,
+                'assigned_to' => $request->assigned_to,
                 'position' => $maxPosition + 1,
-                'allow_subtasks' => false,
+                'allow_subtasks' => $allowSubtasks,
                 'can_be_assigned' => true,
             ]);
 
@@ -156,7 +135,7 @@ class TaskController extends Controller
             DB::rollBack();
             Log::error('Group task creation failed: ' . $e->getMessage(), [
                 'project_id' => $project->id,
-                'group_id' => $group->id,
+                'assigned_group_id' => $group->id,
             ]);
             return response()->json([
                 'success' => false,
@@ -164,19 +143,25 @@ class TaskController extends Controller
             ], 500);
         }
 
-        $task->load(['status', 'creator', 'assignedGroup']);
+        $task->load(['status', 'creator', 'assignedGroup', 'assignee']);
+
+        $userIds = [];
+        if ($task->assigned_to) {
+            $userIds[] = $task->assigned_to;
+        }
 
         if ($task->assignedGroup) {
             $groupMemberIds = $task->assignedGroup->members()->pluck('users.id')->toArray();
+            $userIds = array_merge($userIds, $groupMemberIds);
+        }
 
-            if (!empty($groupMemberIds)) {
-                TaskNotificationEvent::dispatch(
-                    userIds: $groupMemberIds,
-                    scenario: 'assigned',
-                    task: $task,
-                    actor: $request->user(),
-                );
-            }
+        if (!empty($userIds)) {
+            TaskNotificationEvent::dispatch(
+                userIds: array_unique($userIds),
+                scenario: 'assigned',
+                task: $task,
+                actor: $request->user(),
+            );
         }
 
         return response()->json([
@@ -187,97 +172,7 @@ class TaskController extends Controller
     }
 
     /**
-     * Create a manager task inside a group.
-     * - If allow_subtasks = true → parent manager task (cannot be assigned, auto_status = true).
-     * - Else → normal manager task (assignable).
-     */
-    public function storeManagerTask(StoreManagerTaskRequest $request, Project $project, Group $group): JsonResponse
-    {
-        $userId = $request->user()->id;
-        $this->checkProjectManager($project);
-
-        $allowSubtasks = $request->input('allow_subtasks', false);
-        $canBeAssigned = !$allowSubtasks;
-
-        // Prevent assignment if parent task
-        if ($allowSubtasks && ($request->has('assigned_to') || $request->has('assignees'))) {
-            return response()->json([
-                'success' => false,
-                'message' => 'A parent manager task (with subtasks) cannot be assigned directly.',
-            ], 422);
-        }
-
-        $maxPosition = Task::where('project_id', $project->id)
-            ->where('group_id', $group->id)
-            ->max('position') ?? -1;
-
-        try {
-            DB::beginTransaction();
-
-            $task = Task::create([
-                'project_id' => $project->id,
-                'group_id' => $group->id,
-                'status_id' => null,
-                'title' => $request->title,
-                'description' => $request->description,
-                'priority' => $request->priority ?? 'medium',
-                'due_date' => $request->due_date,
-                'created_by' => $userId,
-                'position' => $maxPosition + 1,
-                'allow_subtasks' => $allowSubtasks,
-                'auto_status' => $allowSubtasks,
-                'can_be_assigned' => $canBeAssigned,
-                'assigned_to' => ($canBeAssigned && $request->has('assigned_to')) ? $request->assigned_to : null,
-            ]);
-
-            if ($canBeAssigned && $request->has('assignees')) {
-                $task->assignees()->sync($request->assignees);
-            }
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Manager task creation failed: ' . $e->getMessage(), [
-                'project_id' => $project->id,
-                'group_id' => $group->id,
-                'user_id' => $userId,
-            ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create manager task. Please try again later.',
-            ], 500);
-        }
-
-        $task->load(['status', 'creator', 'group', 'assignee', 'assignees']);
-
-        if (!$allowSubtasks && ($task->assigned_to || $task->assignees->isNotEmpty())) {
-            $userIds = [];
-            if ($task->assigned_to) {
-                $userIds[] = $task->assigned_to;
-            }
-            $userIds = array_merge($userIds, $task->assignees->pluck('id')->toArray());
-
-            TaskNotificationEvent::dispatch(
-                userIds: array_unique($userIds),
-                scenario: 'assigned',
-                task: $task,
-                actor: $request->user(),
-            );
-        }
-
-        $message = $allowSubtasks
-            ? 'Manager parent task created successfully (will auto-complete when all subtasks are done)'
-            : 'Manager task created and assigned successfully';
-
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => new TaskResource($task),
-        ], 201);
-    }
-
-    /**
-     * Create a subtask under a parent task (either project parent or manager parent).
+     * Create a subtask under a parent task (either project parent or group parent).
      * Subtasks are always assignable and require at least one assignee.
      */
     public function storeSubTask(StoreSubTaskRequest $request, Project $project, Group $group, Task $parentTask): JsonResponse
@@ -293,7 +188,7 @@ class TaskController extends Controller
             ], 404);
         }
 
-        if ($parentTask->group_id !== $group->id) {
+        if ($parentTask->assigned_group_id !== $group->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Parent task does not belong to this group',
@@ -308,12 +203,25 @@ class TaskController extends Controller
             ], 422);
         }
 
+        // If the parent task is assigned to a group, the subtask assignee must be a member of that group
+        if ($parentTask->assigned_group_id && $request->assigned_to) {
+            $assignedGroup = Group::find($parentTask->assigned_group_id);
+            if ($assignedGroup && !$assignedGroup->isMember($request->assigned_to)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The assignee must be a member of the group.',
+                ], 422);
+            }
+        }
+
         try {
             DB::beginTransaction();
 
+            $assignedTo = is_array($request->assigned_to) ? $request->assigned_to[0] : $request->assigned_to;
+
             $subTask = Task::create([
                 'project_id' => $project->id,
-                'group_id' => $group->id,
+                'assigned_group_id' => $parentTask->assigned_group_id,
                 'parent_task_id' => $parentTask->id,
                 'status_id' => null,
                 'title' => $request->title,
@@ -321,18 +229,10 @@ class TaskController extends Controller
                 'priority' => $request->priority ?? 'medium',
                 'due_date' => $request->due_date,
                 'created_by' => $userId,
+                'assigned_to' => $assignedTo,
                 'allow_subtasks' => false,
-                'auto_status' => false,
                 'can_be_assigned' => true,
             ]);
-
-            foreach ($request->assigned_to as $assignedUserId) {
-                TaskAssignment::create([
-                    'task_id' => $subTask->id,
-                    'user_id' => $assignedUserId,
-                    'status_id' => null,
-                ]);
-            }
 
             DB::commit();
         } catch (\Exception $e) {
@@ -348,20 +248,16 @@ class TaskController extends Controller
             ], 500);
         }
 
-        $subTask->load(['status', 'creator', 'taskAssignments.user']);
+        $subTask->load(['status', 'creator', 'assignee']);
 
-        $subTaskAssigneeIds = $subTask->taskAssignments->pluck('user_id')->toArray();
+        $subTaskAssigneeIds = $subTask->assigned_to ? [$subTask->assigned_to] : [];
         if (!empty($subTaskAssigneeIds)) {
             TaskNotificationEvent::dispatch(
-                userIds: $subTaskAssigneeIds,
+                userIds: array_unique($subTaskAssigneeIds),
                 scenario: 'assigned',
                 task: $subTask,
                 actor: $request->user(),
             );
-        }
-
-        if ($parentTask->auto_status) {
-            $parentTask->syncStatusFromSubtasks();
         }
 
         return response()->json([
@@ -394,14 +290,11 @@ class TaskController extends Controller
                 'status',
                 'creator',
                 'assignee',
-                'taskAssignments.user',
-                'taskAssignments.status',
                 'dependencies',
                 'comments.user',
                 'subTasks.status',
                 'subTasks.assignee',
-                'subTasks.taskAssignments',
-                'group',
+                'subTasks.assignedGroup',
                 'assignedGroup',
                 'parentTask',
             ]);
@@ -457,28 +350,18 @@ class TaskController extends Controller
             ], 403);
         }
 
-        // 2. Check if the task allows assignment (parent tasks cannot be assigned)
-        if (!$task->canBeAssigned() && ($request->has('assigned_to') || $request->has('assignees'))) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This task cannot be assigned because it is a parent task (has subtasks).',
-            ], 422);
-        }
-
-        // 3. Ensure all assignees are members of the project
-        if ($request->has('assignees')) {
-            $assignees = $request->assignees;
-            $validMembers = $project->users()->whereIn('user_id', $assignees)->pluck('user_id')->toArray();
-            $invalid = array_diff($assignees, $validMembers);
-            if (!empty($invalid)) {
+        // 2. If the task belongs to a group and its assignee changes, the new assignee must be a member of the group
+        if ($task->assigned_group_id && $request->has('assigned_to') && $request->assigned_to) {
+            $assignedGroup = Group::find($task->assigned_group_id);
+            if ($assignedGroup && !$assignedGroup->isMember($request->assigned_to)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Some users are not members of this project: ' . implode(', ', $invalid),
+                    'message' => 'The assignee must be a member of the assigned group.',
                 ], 422);
             }
         }
 
-        // 4. Allowed fields for update (exclude group_id, allow_subtasks, auto_status, can_be_assigned, assigned_group_id)
+        // 4. Allowed fields for update (exclude allow_subtasks, can_be_assigned)
         $allowedFields = ['title', 'description', 'priority', 'due_date', 'assigned_to', 'position'];
         if ($isOwner) {
             $updateData = $request->only($allowedFields);
@@ -500,13 +383,34 @@ class TaskController extends Controller
 
             $task->update($updateData);
 
-            if ($isOwner && $request->has('assignees') && $task->canBeAssigned()) {
-                $task->assignees()->sync($request->assignees);
+            // 6. When the assigned_group_id changes (task moved to a different group),
+            //    cascade to all subtasks and clear assignments (parent and subtasks)
+            if ($isOwner && $request->has('assigned_group_id')) {
+                // Prevent subtasks from being moved independently
+                if ($task->parent_task_id) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Subtasks cannot be moved to a different group independently. Update the parent task instead.',
+                    ], 422);
+                }
+
+                $newGroupId = $request->assigned_group_id;
+                $task->assigned_group_id = $newGroupId;
+
+                // Cascade to subtasks
+                Task::where('parent_task_id', $task->id)->update([
+                    'assigned_group_id' => $newGroupId,
+                    'assigned_to' => null,
+                ]);
+
+                // Clear parent assignment
+                $task->assigned_to = null;
+                $task->save();
             }
 
             DB::commit();
 
-            $task->load(['status', 'creator', 'assignee', 'assignees']);
+            $task->load(['status', 'creator', 'assignee']);
 
             return response()->json([
                 'success' => true,
@@ -546,7 +450,7 @@ class TaskController extends Controller
         $isOwner = $project->isOwner($userId);
         $isManager = $userRole === 'manager';
         $isUser = $userRole === 'user';
-        $isTaskAssignee = ($task->assigned_to === $userId) || $task->taskAssignments()->where('user_id', $userId)->exists();
+        $isTaskAssignee = $task->assigned_to === $userId;
 
         if (!($isOwner || $isManager || ($isUser && $isTaskAssignee))) {
             return response()->json([
@@ -563,14 +467,6 @@ class TaskController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'The selected status does not belong to this project',
-            ], 422);
-        }
-
-        // 3. Prevent changing status of a parent task that has subtasks (optional, but recommended)
-        if ($task->allow_subtasks && $task->subTasks()->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot manually change status of a parent task that has subtasks. Its status is automatically managed.',
             ], 422);
         }
 
@@ -609,16 +505,9 @@ class TaskController extends Controller
                 'changed_at' => now(),
             ]);
 
-            // If this task is a subtask, sync parent task status after status change
-            if ($task->parent_task_id) {
-                $parent = $task->parentTask;
-                if ($parent && $parent->auto_status) {
-                    $parent->syncStatusFromSubtasks();
-                }
-            }
             DB::commit();
 
-            $task->load(['status', 'creator', 'assignee', 'assignees']);
+            $task->load(['status', 'creator', 'assignee']);
 
             return response()->json([
                 'success' => true,
@@ -641,250 +530,6 @@ class TaskController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Get all tasks that the current manager assigned to their team members,
-     * grouped by status for Kanban view.
-     */
-    public function managerAssignedTasks(Request $request): JsonResponse
-    {
-        try {
-            $userId = $request->user()->id;
-
-            // 1. Get all groups where user is manager
-            $groupIds = Group::where('manager_id', $userId)->pluck('id')->toArray();
-
-            if (empty($groupIds)) {
-                return response()->json([
-                    'success' => true,
-                    'data' => [],
-                    'total' => 0,
-                    'message' => 'You are not a manager of any group.'
-                ]);
-            }
-
-            // 2. Build query: tasks from these groups
-            $tasksQuery = Task::with(['status', 'creator', 'assignee', 'taskAssignments.user', 'group'])
-                ->where(function ($q) use ($groupIds) {
-                    $q->whereIn('group_id', $groupIds)
-                        ->orWhereIn('assigned_group_id', $groupIds);
-                })
-                // 3. Only tasks assigned by THIS user (not any other manager)
-                ->where(function ($q) use ($userId) {
-                    // 3a. Tasks created by this user AND assigned to someone
-                    $q->where(function ($sub) use ($userId) {
-                        $sub->where('created_by', $userId)
-                            ->where(function ($inner) {
-                                $inner->whereNotNull('assigned_to')
-                                    ->orWhereHas('taskAssignments')
-                                    ->orWhereNotNull('assigned_group_id');
-                            });
-                    })
-                        // 3b. OR: Tasks where this user appears in assignment history as the assigner
-                        ->orWhereHas('assignmentHistories', function ($sub) use ($userId) {
-                            $sub->where('assigned_by', $userId)
-                                ->where('action', 'assigned');
-                        });
-                })
-                // 4. Exclude archived tasks (optional, but recommended for Kanban)
-                ->where('is_archived', false);
-
-            // 5. Sort for Kanban (by status position, then by task position)
-            $tasks = $tasksQuery
-                ->orderBy('status_id')
-                ->orderBy('position')
-                ->get();
-
-            // 6. Group by status name
-            $grouped = $tasks->groupBy(function ($task) {
-                return $task->status?->name ?? 'Unassigned';
-            });
-
-            $formatted = $grouped->map(fn($tasks) => TaskResource::collection($tasks));
-
-            return response()->json([
-                'success' => true,
-                'data' => $formatted,
-                'total' => $tasks->count(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch manager assigned tasks: ' . $e->getMessage(), [
-                'user_id' => $request->user()->id,
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to load tasks. Please try again later.'
-            ], 500);
-        }
-    }
-
-    /**
-     * Get all tasks from the groups managed by the authenticated manager,
-     * within a specific project, grouped by status for Kanban view.
-     * All project statuses are returned, even empty ones.
-     */
-    public function managerGroupsKanban(Request $request): JsonResponse
-    {
-        try {
-            $userId = $request->user()->id;
-            $projectId = $request->input('project_id');
-
-            if (!$projectId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'project_id parameter is required'
-                ], 422);
-            }
-
-            $project = Project::find($projectId);
-
-            if (!$project) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Project not found'
-                ], 404);
-            }
-
-            // 1. Get all groups where user is manager, within this project
-            $groupIds = Group::where('project_id', $project->id)
-                ->where('manager_id', $userId)
-                ->pluck('id')
-                ->toArray();
-
-            // 2. Get all project statuses (including empty ones)
-            $statuses = $project->taskStatuses()
-                ->orderBy('position')
-                ->get();
-
-            $grouped = collect();
-
-            if (!empty($groupIds)) {
-                $tasks = Task::with([
-                    'status',
-                    'creator',
-                    'assignee',
-                    'taskAssignments.user',
-                    'assignedGroup',
-                    'group',
-                    'subTasks.status',
-                    'subTasks.assignee',
-                    'subTasks.taskAssignments',
-                ])
-                    ->where('project_id', $project->id)
-                    ->whereNull('parent_task_id')
-                    ->where(function ($q) use ($groupIds) {
-                        $q->whereIn('group_id', $groupIds)
-                            ->orWhereIn('assigned_group_id', $groupIds);
-                    })
-                    ->where('is_archived', false)
-                    ->orderBy('position')
-                    ->get();
-
-                $grouped = $tasks->groupBy(function ($task) {
-                    return $task->status_id ?? 'no-status';
-                });
-            }
-
-            $kanban = $statuses->map(function ($status) use ($grouped) {
-                $statusTasks = $grouped->get($status->id, collect());
-
-                return [
-                    'status' => [
-                        'id' => $status->id,
-                        'name' => $status->name,
-                        'position' => $status->position,
-                    ],
-                    'tasks' => TaskResource::collection($statusTasks),
-                    'tasks_count' => $statusTasks->count(),
-                ];
-            });
-
-            $totalTasks = $kanban->sum('tasks_count');
-
-            return response()->json([
-                'success' => true,
-                'data' => $kanban->values(),
-                'total_tasks' => $totalTasks,
-                'groups_count' => count($groupIds),
-                'project' => [
-                    'id' => $project->id,
-                    'name' => $project->name,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch manager groups kanban: ' . $e->getMessage(), [
-                'user_id' => $request->user()->id,
-                'project_id' => $request->input('project_id'),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to load kanban. Please try again later.'
-            ], 500);
-        }
-    }
-
-    // public function updateTaskAssignmentStatus(Request $request, Task $task, int $assignmentId): JsonResponse
-    // {
-    //     $userId = $request->user()->id;
-    //     $assignment = TaskAssignment::where('id', $assignmentId)
-    //         ->where('task_id', $task->id)
-    //         ->first();
-
-    //     if (!$assignment) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Assignment not found'
-    //         ], 404);
-    //     }
-
-    //     if ($assignment->user_id !== $userId) {
-    //         $project = $task->project;
-    //         if (!$project->isOwner($userId) && !$task->group?->isManager($userId)) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'You do not have permission to update this assignment'
-    //             ], 403);
-    //         }
-    //     }
-
-    //     $request->validate([
-    //         'status_id' => 'required|exists:task_statuses,id',
-    //     ]);
-
-    //     $doneStatus = $task->project->taskStatuses()->where('name', 'Done')->first();
-
-    //     $assignment->update([
-    //         'status_id' => $request->status_id,
-    //         'completed_at' => ($doneStatus && $request->status_id === $doneStatus->id) ? now() : null
-    //     ]);
-
-    //     if ($task->auto_status && $assignment->completed_at) {
-    //         $task->updateAutoStatus();
-    //     }
-
-    //     // Sync parent task status if this task is a subtask
-    //     if ($task->parent_task_id) {
-    //         $parentTask = $task->parentTask;
-    //         if ($parentTask && $parentTask->auto_status) {
-    //             $parentTask->syncStatusFromSubtasks();
-    //         }
-    //     } elseif ($task->allow_subtasks && $task->auto_status) {
-    //         // If this task itself is a parent, sync its status based on its own subtasks
-    //         $task->syncStatusFromSubtasks();
-    //     }
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Assignment status updated successfully',
-    //         'data' => [
-    //             'assignment_id' => $assignment->id,
-    //             'status_id' => $assignment->status_id,
-    //             'completed_at' => $assignment->completed_at
-    //         ]
-    //     ]);
-    // }
 
     /**
      * Reorder multiple tasks (change position and/or status).
@@ -915,19 +560,6 @@ class TaskController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Some statuses do not belong to this project: ' . implode(', ', $invalidStatusIds),
-            ], 422);
-        }
-
-        // 3. Optional: Prevent reordering parent tasks that have subtasks (if desired)
-        // This depends on your business logic. If you want to allow manual override, skip this.
-        $parentTasks = Task::whereIn('id', $taskIds)
-            ->where('allow_subtasks', true)
-            ->whereHas('subTasks')
-            ->get();
-        if ($parentTasks->isNotEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot reorder parent tasks that have subtasks. Update their status via subtask completion instead.',
             ], 422);
         }
 
@@ -1039,7 +671,7 @@ class TaskController extends Controller
 
             $tasks = $project->tasks()
                 ->whereNotNull('completed_at')
-                ->with(['status', 'creator', 'assignee', 'taskAssignments.user'])
+                ->with(['status', 'creator', 'assignee', 'assignedGroup'])
                 ->orderBy('completed_at', 'desc')
                 ->get();
 
@@ -1076,19 +708,16 @@ class TaskController extends Controller
                 ->where('is_archived', false)
                 ->where(function ($q) {
                     $q->whereNotNull('assigned_to')
-                        ->orWhereNotNull('assigned_group_id')
-                        ->orWhereHas('assignees');
+                        ->orWhereNotNull('assigned_group_id');
                 })
                 ->with([
                     'status',
                     'creator',
                     'assignee',
-                    'taskAssignments.user',
                     'assignedGroup',
-                    'group',
                     'subTasks.status',
                     'subTasks.assignee',
-                    'subTasks.taskAssignments',
+                    'subTasks.assignedGroup',
                 ])
                 ->orderBy('position')
                 ->get();
@@ -1150,10 +779,9 @@ class TaskController extends Controller
             $tasks = $project->tasks()
                 ->where(function ($q) {
                     $q->whereNotNull('assigned_to')
-                        ->orWhereNotNull('assigned_group_id')
-                        ->orWhereHas('assignees');
+                        ->orWhereNotNull('assigned_group_id');
                 })
-                ->with(['status', 'creator', 'assignee', 'taskAssignments.user', 'assignedGroup'])
+                ->with(['status', 'creator', 'assignee', 'assignedGroup'])
                 ->orderBy('due_date')
                 ->get();
 
@@ -1185,7 +813,6 @@ class TaskController extends Controller
             $tasks = $project->tasks()
                 ->whereNull('assigned_to')
                 ->whereNull('assigned_group_id')
-                ->whereDoesntHave('assignees')
                 ->with(['status', 'creator'])
                 ->orderBy('created_at')
                 ->get();
@@ -1281,14 +908,6 @@ class TaskController extends Controller
 
         // Only project owner or manager can delete tasks
         $this->checkProjectManager($project);
-
-        // Prevent deletion if task has subtasks
-        if ($task->subTasks()->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot delete a parent task that has subtasks. Delete or reassign subtasks first.',
-            ], 422);
-        }
 
         try {
             DB::beginTransaction();
@@ -1558,12 +1177,7 @@ class TaskController extends Controller
 
         $tasks = Task::with(['project', 'status', 'creator', 'assignee'])
             ->whereNull('completed_at')
-            ->where(function ($query) use ($userId) {
-                $query->where('assigned_to', $userId)
-                    ->orWhereHas('assignees', function ($q) use ($userId) {
-                        $q->where('user_id', $userId);
-                    });
-            })
+            ->where('assigned_to', $userId)
             ->orderBy($sortBy, $sortDir)
             ->get();
 
@@ -1591,7 +1205,7 @@ class TaskController extends Controller
 
             $project->load([
                 'users',
-                'tasks.taskAssignments',
+                'tasks',
                 'taskStatuses',
                 'groups',
             ]);
@@ -1624,7 +1238,7 @@ class TaskController extends Controller
             $tasks = Task::where('project_id', $project->id)
                 ->where('assigned_group_id', $group->id)
                 ->whereNotNull('completed_at')
-                ->with(['status', 'creator', 'assignee', 'assignedGroup', 'group', 'taskAssignments.user'])
+                ->with(['status', 'creator', 'assignee', 'assignedGroup'])
                 ->orderBy('completed_at', 'desc')
                 ->get();
 
@@ -1659,7 +1273,7 @@ class TaskController extends Controller
             $tasks = Task::where('project_id', $project->id)
                 ->where('assigned_group_id', $group->id)
                 ->where('is_archived', true)
-                ->with(['status', 'creator', 'assignee', 'assignedGroup', 'group', 'taskAssignments.user'])
+                ->with(['status', 'creator', 'assignee', 'assignedGroup'])
                 ->orderBy('updated_at', 'desc')
                 ->get();
 
@@ -1695,13 +1309,8 @@ class TaskController extends Controller
 
             $tasks = Task::where('project_id', $project->id)
                 ->where('assigned_group_id', $group->id)
-                ->where(function ($q) use ($groupMemberIds) {
-                    $q->whereIn('assigned_to', $groupMemberIds)
-                        ->orWhereHas('assignees', function ($sub) use ($groupMemberIds) {
-                            $sub->whereIn('user_id', $groupMemberIds);
-                        });
-                })
-                ->with(['status', 'creator', 'assignee', 'assignedGroup', 'group', 'taskAssignments.user'])
+                ->whereIn('assigned_to', $groupMemberIds)
+                ->with(['status', 'creator', 'assignee', 'assignedGroup'])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -1738,17 +1347,10 @@ class TaskController extends Controller
             $tasks = Task::where('project_id', $project->id)
                 ->where('assigned_group_id', $group->id)
                 ->where(function ($q) use ($groupMemberIds) {
-                    $q->where(function ($inner) use ($groupMemberIds) {
-                        $inner->whereNull('assigned_to')
-                            ->orWhereNotIn('assigned_to', $groupMemberIds);
-                    })->where(function ($inner) use ($groupMemberIds) {
-                        $inner->whereDoesntHave('assignees')
-                            ->orWhereHas('assignees', function ($sub) use ($groupMemberIds) {
-                                $sub->whereNotIn('user_id', $groupMemberIds);
-                            });
-                    });
+                    $q->whereNull('assigned_to')
+                        ->orWhereNotIn('assigned_to', $groupMemberIds);
                 })
-                ->with(['status', 'creator', 'assignee', 'assignedGroup', 'group', 'taskAssignments.user'])
+                ->with(['status', 'creator', 'assignee', 'assignedGroup'])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -1796,7 +1398,15 @@ class TaskController extends Controller
 
             $tasks = Task::where('project_id', $project->id)
                 ->whereNotNull('assigned_group_id')
-                ->with(['status', 'creator', 'assignedGroup', 'group'])
+                ->with([
+                    'status',
+                    'creator',
+                    'assignedGroup',
+                    'assignee',
+                    'subTasks.status',
+                    'subTasks.assignee',
+                    'subTasks.assignedGroup',
+                ])
                 ->when($search, function ($query) use ($search) {
                     $query->where(function ($q) use ($search) {
                         $q->where('title', 'LIKE', "%{$search}%")
@@ -1835,7 +1445,7 @@ class TaskController extends Controller
 
     /**
      * Get tasks related to a specific group that have no status (not yet placed on the board).
-     * Includes both manager tasks (group_id) and group tasks (assigned_group_id).
+     * Includes group tasks (assigned_group_id).
      * Excludes subtasks (they are managed under their parent).
      */
     public function getGroupBoard(Project $project, Group $group, Request $request): JsonResponse
@@ -1865,17 +1475,12 @@ class TaskController extends Controller
             $tasks = Task::where('project_id', $project->id)
                 ->whereNull('status_id')
                 ->whereNull('parent_task_id')
-                ->where(function ($q) use ($group) {
-                    $q->where('group_id', $group->id)
-                        ->orWhere('assigned_group_id', $group->id);
-                })
+                ->where('assigned_group_id', $group->id)
                 ->where('is_archived', false)
                 ->with([
                     'creator',
                     'assignee',
-                    'taskAssignments.user',
                     'assignedGroup',
-                    'group',
                     'subTasks.status',
                     'subTasks.assignee',
                 ])
@@ -1894,7 +1499,7 @@ class TaskController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to fetch group board: ' . $e->getMessage(), [
-                'group_id' => $group->id,
+                'assigned_group_id' => $group->id,
                 'project_id' => $project->id,
                 'user_id' => $request->user()->id ?? null,
                 'trace' => $e->getTraceAsString(),
@@ -1907,10 +1512,8 @@ class TaskController extends Controller
     }
 
     /**
-     * Get all tasks related to a specific group that are assigned to the group's members,
-     * grouped by status for Kanban view.
-     * Only group tasks (assigned_group_id) that are assigned to at least one group member.
-     * All project statuses are returned, even empty ones.
+     * Get all tasks related to a specific group, grouped by status for Kanban view.
+     * Includes group tasks (assigned_group_id).
      * Excludes subtasks (they are managed under their parent).
      */
     public function getGroupKanban(Project $project, Group $group, Request $request): JsonResponse
@@ -1946,23 +1549,15 @@ class TaskController extends Controller
             $tasks = Task::where('project_id', $project->id)
                 ->whereNull('parent_task_id')
                 ->where('assigned_group_id', $group->id)
-                ->where(function ($q) use ($groupMemberIds) {
-                    $q->whereIn('assigned_to', $groupMemberIds)
-                        ->orWhereHas('assignees', function ($sub) use ($groupMemberIds) {
-                            $sub->whereIn('user_id', $groupMemberIds);
-                        });
-                })
                 ->where('is_archived', false)
                 ->with([
                     'status',
                     'creator',
                     'assignee',
-                    'taskAssignments.user',
                     'assignedGroup',
-                    'group',
                     'subTasks.status',
                     'subTasks.assignee',
-                    'subTasks.taskAssignments',
+                    'subTasks.assignedGroup',
                 ])
                 ->orderBy('position')
                 ->get();
@@ -2007,7 +1602,7 @@ class TaskController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to fetch group kanban: ' . $e->getMessage(), [
-                'group_id' => $group->id,
+                'assigned_group_id' => $group->id,
                 'project_id' => $project->id,
                 'user_id' => $request->user()->id ?? null,
                 'trace' => $e->getTraceAsString(),
@@ -2125,7 +1720,6 @@ class TaskController extends Controller
                     'status',
                     'creator',
                     'assignee',
-                    'taskAssignments.user',
                     'transferredFrom',
                     'transferredTo',
                 ])
@@ -2191,19 +1785,13 @@ class TaskController extends Controller
             'status',
             'project',
             'assignee',
-            'taskAssignments.user',
             'parentTask',
             'subTasks' => function ($query) {
-                $query->with(['status', 'assignee', 'taskAssignments.user'])->orderBy('position');
+                $query->with(['status', 'assignee'])->orderBy('position');
             }
         ])
             ->where('project_id', $projectId)
-            ->where(function ($query) use ($userId) {
-                $query->where('assigned_to', $userId)
-                    ->orWhereHas('taskAssignments', function ($q) use ($userId) {
-                        $q->where('user_id', $userId);
-                    });
-            })
+            ->where('assigned_to', $userId)
             ->where('is_archived', false)
             ->get();
 
