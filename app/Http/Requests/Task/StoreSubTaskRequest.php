@@ -23,8 +23,8 @@ class StoreSubTaskRequest extends FormRequest
             return true;
         }
 
-        if ($parentTask->group_id) {
-            $group = $parentTask->group;
+        if ($parentTask->assigned_group_id) {
+            $group = $parentTask->assignedGroup;
             if ($group && $group->isManager($user->id)) {
                 return true;
             }
@@ -40,24 +40,16 @@ class StoreSubTaskRequest extends FormRequest
             'description' => 'nullable|string|max:5000',
             'priority' => 'nullable|in:low,medium,high,urgent',
             'due_date' => 'nullable|date|after_or_equal:today',
-            'assigned_to' => 'required|array|min:1',
-            'assigned_to.*' => 'exists:users,id',
+            'assigned_to' => 'required|integer|exists:users,id',
         ];
     }
     public function messages(): array
     {
         return [
             'title.required' => 'Subtask title is required',
-            'assigned_to.required' => 'You must assign at least one user',
-            'assigned_to.*.exists' => 'One or more selected users do not exist',
+            'assigned_to.required' => 'You must assign a user',
+            'assigned_to.exists' => 'Selected user does not exist',
             'due_date.after_or_equal' => 'Due date cannot be in the past',
         ];
-    }
-
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'assigned_to' => array_unique($this->assigned_to ?? [])
-        ]);
     }
 }

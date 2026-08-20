@@ -67,10 +67,7 @@ class CommentController extends Controller
             $userIds[] = $task->assigned_to;
         }
 
-        $additionalIds = $task->assignees()
-            ->where('user_id', '!=', $userId)
-            ->pluck('users.id')
-            ->toArray();
+        $additionalIds = $task->assigned_to ? [$task->assigned_to] : [];
 
         $userIds = array_unique(array_merge($userIds, $additionalIds));
 

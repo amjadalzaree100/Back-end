@@ -129,7 +129,7 @@ class TaskDependencyController extends Controller
         if ($task->assigned_to) {
             $userIds[] = $task->assigned_to;
         }
-        $userIds = array_merge($userIds, $task->assignees()->pluck('users.id')->toArray());
+        $userIds = array_merge($userIds, $task->assigned_to ? [$task->assigned_to] : []);
         $userIds = array_unique($userIds);
 
         if (!empty($userIds)) {

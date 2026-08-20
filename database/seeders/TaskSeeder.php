@@ -7,7 +7,6 @@ use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class TaskSeeder extends Seeder
 {
@@ -91,17 +90,6 @@ class TaskSeeder extends Seeder
                     'assigned_to' => $assigneeId,
                     'completed_at' => $completedAt,
                     'started_at' => $startedAt,
-                ]);
-
-                // Also create a task_assignment record for consistency
-                DB::table('task_assignments')->insert([
-                    'task_id' => $task->id,
-                    'user_id' => $assigneeId,
-                    'status_id' => $status->id,
-                    'started_at' => $startedAt,
-                    'completed_at' => $completedAt,
-                    'created_at' => now(),
-                    'updated_at' => now(),
                 ]);
             }
         }

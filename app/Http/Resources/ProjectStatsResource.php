@@ -37,7 +37,6 @@ class ProjectStatsResource extends JsonResource
 
         $assignedTasks = $tasks->filter(fn($task) =>
             !is_null($task->assigned_to) ||
-            $task->taskAssignments()->exists() ||
             !is_null($task->assigned_group_id)
         )->count();
 

@@ -11,9 +11,9 @@ class NotifyManagerTaskCompleted
     {
         $task = $event->task;
 
-        if ($task->group && $task->group->manager_id) {
+        if ($task->assignedGroup && $task->assignedGroup->manager_id) {
             TaskNotificationEvent::dispatch(
-                userIds: [$task->group->manager_id],
+                userIds: [$task->assignedGroup->manager_id],
                 scenario: 'completed',
                 task: $task,
             );

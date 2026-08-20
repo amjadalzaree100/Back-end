@@ -19,11 +19,10 @@ class UpdateTaskRequest extends FormRequest
             'priority' => 'nullable|in:low,medium,high,urgent',
             'due_date' => 'nullable|date|after_or_equal:today',
             'status_id' => 'nullable|exists:task_statuses,id',
-            'assigned_group_id' => 'nullable|exists:groups,id',
-            'assigned_to' => 'nullable|exists:users,id',
+            // Note: assigned_group_id changes on subtasks are blocked in TaskController::update()
+            'assigned_group_id' => 'nullable|integer|exists:groups,id',
+            'assigned_to' => 'nullable|integer|exists:users,id',
             'position' => 'nullable|integer|min:0',
-            'assignees' => 'nullable|array',
-            'assignees.*' => 'exists:users,id',
         ];
     }
 

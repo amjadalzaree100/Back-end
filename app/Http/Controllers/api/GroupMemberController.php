@@ -9,6 +9,7 @@ use App\Http\Requests\Group\TransferManagerRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Group;
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -147,6 +148,13 @@ class GroupMemberController extends Controller
 
             $group->removeMember($userId);
 
+            // The member is no longer part of the group, so they lose any
+            // assignment to group tasks. Authorization to create group tasks
+            // (TaskController) also relies on current group membership/manager
+            // status, so former managers/members can no longer create tasks
+            // for this group.
+            $this->unassignFromGroupTasks($group, $userId);
+
             DB::commit();
 
             return response()->json([
@@ -187,6 +195,12 @@ class GroupMemberController extends Controller
 
             $group->removeMember($userId);
 
+            // Leaving the group clears the user's assignments to group tasks
+            // and group subtasks. They also lose the ability to create tasks
+            // for this group (enforced by TaskController authorization based
+            // on current membership/manager status).
+            $this->unassignFromGroupTasks($group, $userId);
+
             DB::commit();
 
             return response()->json([
@@ -202,6 +216,30 @@ class GroupMemberController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Clear direct assignments for a user who has left or been removed from a group.
+     *
+     * Any group task (or subtask under a group task) that was assigned directly
+     * to the user via `assigned_to` has the assignment cleared, since assignments
+     * are now purely stored on the `assigned_to` field and should only point to
+     * current group members.
+     */
+    private function unassignFromGroupTasks(Group $group, int $userId): void
+    {
+        // Direct assignments on tasks belonging to the group
+        Task::where('assigned_group_id', $group->id)
+            ->where('assigned_to', $userId)
+            ->update(['assigned_to' => null]);
+
+        // Direct assignments on subtasks whose parent task belongs to the group
+        $groupTaskIds = Task::where('assigned_group_id', $group->id)
+            ->pluck('id');
+
+        Task::whereIn('parent_task_id', $groupTaskIds)
+            ->where('assigned_to', $userId)
+            ->update(['assigned_to' => null]);
     }
 
     public function transferManager(TransferManagerRequest $request, Project $project, Group $group): JsonResponse

@@ -62,7 +62,7 @@ class Group extends Model
 
     public function groupTasks(): HasMany
     {
-        return $this->hasMany(Task::class, 'group_id');
+        return $this->hasMany(Task::class, 'assigned_group_id');
     }
 
     public function assignedTasks(): HasMany
@@ -72,8 +72,7 @@ class Group extends Model
 
     public function allRelatedTasks()
     {
-        return Task::where('group_id', $this->id)
-            ->orWhere('assigned_group_id', $this->id)
+        return Task::where('assigned_group_id', $this->id)
             ->get();
     }
 

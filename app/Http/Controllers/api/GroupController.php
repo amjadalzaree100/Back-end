@@ -290,9 +290,7 @@ class GroupController extends Controller
 
             // Owner can delete, but only if group has no members and no related tasks
             $hasMembers = $group->members()->exists();
-            $hasRelatedTasks = Task::where('group_id', $group->id)
-                ->orWhere('assigned_group_id', $group->id)
-                ->exists();
+            $hasRelatedTasks = Task::where('assigned_group_id', $group->id)->exists();
 
             if ($hasMembers) {
                 return response()->json([
@@ -407,10 +405,10 @@ class GroupController extends Controller
                 ], 404);
             }
 
-            if (!$project->isOwner($userId)) {
+            if (!$project->isOwner($userId) && !$group->isManager($userId)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Only the project owner can detach tasks.'
+                    'message' => 'Only the project owner or group manager can detach tasks.'
                 ], 403);
             }
 
@@ -421,25 +419,51 @@ class GroupController extends Controller
                 ], 422);
             }
 
+            $taskIds = $request->input('task_ids');
+
+            $query = Task::where('project_id', $project->id)
+                ->where('assigned_group_id', $group->id)
+                ->whereNull('parent_task_id');
+
+            if (!empty($taskIds)) {
+                $request->validate([
+                    'task_ids' => 'required|array',
+                    'task_ids.*' => 'integer',
+                ]);
+
+                $query->whereIn('id', $taskIds);
+            }
+
+            $tasks = $query->get();
+
+            if ($tasks->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No tasks found assigned to this group matching the provided IDs.'
+                ], 404);
+            }
+
             DB::beginTransaction();
 
-            // Detach tasks by group_id (manager tasks)
-            $managerTaskCount = Task::where('group_id', $group->id)->update(['group_id' => null]);
+            $detachedTaskIds = $tasks->pluck('id')->toArray();
 
-            // Detach tasks by assigned_group_id (group tasks)
-            $groupTaskCount = Task::where('assigned_group_id', $group->id)->update(['assigned_group_id' => null]);
+            // Detach the selected tasks and clear their assignment
+            Task::whereIn('id', $detachedTaskIds)
+                ->update(['assigned_group_id' => null, 'assigned_to' => null]);
+
+            // Cascade to subtasks (children via parent_task_id)
+            $subtaskCount = Task::where('project_id', $project->id)
+                ->whereIn('parent_task_id', $detachedTaskIds)
+                ->update(['assigned_group_id' => null, 'assigned_to' => null]);
 
             DB::commit();
 
-            $totalDetached = $managerTaskCount + $groupTaskCount;
-
             return response()->json([
                 'success' => true,
-                'message' => "All tasks have been detached from the group. {$totalDetached} task(s) affected.",
+                'message' => 'Tasks have been detached from the group.',
                 'data' => [
-                    'manager_tasks_detached' => $managerTaskCount,
-                    'group_tasks_detached' => $groupTaskCount,
-                    'total_detached' => $totalDetached,
+                    'tasks_detached' => $tasks->count(),
+                    'subtasks_detached' => $subtaskCount,
                 ]
             ]);
 

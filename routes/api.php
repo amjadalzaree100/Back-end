@@ -214,6 +214,7 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     Route::get('/projects/{project}/groups/{group}/manager', [GroupMemberController::class, 'getManager']);
     Route::get('/my-managed-groups', [GroupController::class, 'myManagedGroups']);
     Route::get('/my-groups', [GroupController::class, 'myGroups']);
+    Route::get('/projects/{project}/groups/{group}/board', [TaskController::class, 'getGroupBoard']);
     Route::get('/projects/{project}/groups/{group}/completed-tasks', [TaskController::class, 'getGroupCompletedTasks']);
     Route::get('/projects/{project}/groups/{group}/archived-tasks', [TaskController::class, 'getGroupArchivedTasks']);
     Route::get('/projects/{project}/groups/{group}/assigned-tasks', [TaskController::class, 'getGroupAssignedTasks']);
@@ -259,12 +260,6 @@ Route::get('/projects/{project}/tasks/{task}/transfer-history', [TaskController:
 
 Route::post('/projects/{project}/tasks/{task}/transfer', [TaskController::class, 'transfer'])
     ->middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked']);
-
-Route::get('/manager-kanban', [TaskController::class, 'managerAssignedTasks'])
-    ->middleware(['auth:sanctum', 'is.active', 'verified']);
-
-Route::get('/manager-groups-kanban', [TaskController::class, 'managerGroupsKanban'])
-    ->middleware(['auth:sanctum', 'is.active', 'verified']);
 
 // TASK ASSIGNMENTS ROUTES - Read only (always accessible)
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
@@ -385,8 +380,7 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'
         Route::delete('/empty-trash', [TaskController::class, 'emptyTrash']);
     });
 
-    // Manager tasks & subtasks (separate from tasks prefix to avoid variable duplication)
-    Route::post('/projects/{project}/groups/{group}/manager-tasks', [TaskController::class, 'storeManagerTask']);
+    // Group tasks & subtasks (separate from tasks prefix to avoid variable duplication)
     Route::post('/projects/{project}/groups/{group}/tasks/{parentTask}/subtasks', [TaskController::class, 'storeSubTask']);
     Route::post('/projects/{project}/group-tasks', [TaskController::class, 'storeGroupTask']);
 });
@@ -396,7 +390,6 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'
     Route::prefix('projects/{project}/tasks/{task}/assignments')->group(function () {
         Route::post('/', [TaskAssignmentController::class, 'assign']);
         Route::delete('/{userId}', [TaskAssignmentController::class, 'unassign']);
-        Route::put('/{assignmentId}/status', [TaskController::class, 'updateTaskAssignmentStatus']);
     });
 });
 
