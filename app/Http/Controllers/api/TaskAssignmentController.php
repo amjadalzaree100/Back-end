@@ -155,11 +155,24 @@ class TaskAssignmentController extends Controller
             }
         }
 
+        $oldStatusId = $task->status_id;
+
         try {
             DB::beginTransaction();
 
             $task->assigned_to = $assigneeId;
+            $task->status_id = $request->status_id;
             $task->save();
+
+            if ($oldStatusId !== (int) $request->status_id) {
+                DB::table('task_status_histories')->insert([
+                    'task_id'        => $task->id,
+                    'from_status_id' => $oldStatusId,
+                    'to_status_id'   => $request->status_id,
+                    'changed_by'     => $userId,
+                    'changed_at'     => now(),
+                ]);
+            }
 
             TaskAssignmentHistory::create([
                 'task_id' => $task->id,
@@ -218,11 +231,24 @@ class TaskAssignmentController extends Controller
         }
         $currentUserId = $request->user()->id;
 
+        $oldStatusId = $task->status_id;
+
         try {
             DB::beginTransaction();
 
             $task->assigned_to = null;
+            $task->status_id = null;
             $task->save();
+
+            if (!is_null($oldStatusId)) {
+                DB::table('task_status_histories')->insert([
+                    'task_id'        => $task->id,
+                    'from_status_id' => $oldStatusId,
+                    'to_status_id'   => null,
+                    'changed_by'     => $currentUserId,
+                    'changed_at'     => now(),
+                ]);
+            }
 
             TaskAssignmentHistory::create([
                 'task_id' => $task->id,

@@ -408,6 +408,21 @@ class TaskController extends Controller
                 $task->save();
             }
 
+            // Enforce invariant: if assigned_to is null, status_id must also be null
+            if (is_null($task->assigned_to) && !is_null($task->status_id)) {
+                $oldStatusId = $task->status_id;
+                $task->status_id = null;
+                $task->save();
+
+                DB::table('task_status_histories')->insert([
+                    'task_id'        => $task->id,
+                    'from_status_id' => $oldStatusId,
+                    'to_status_id'   => null,
+                    'changed_by'     => $userId,
+                    'changed_at'     => now(),
+                ]);
+            }
+
             DB::commit();
 
             $task->load(['status', 'creator', 'assignee']);
@@ -457,6 +472,14 @@ class TaskController extends Controller
                 'success' => false,
                 'message' => 'You do not have permission to change task status',
             ], 403);
+        }
+
+        // Guard: cannot set status on an unassigned task
+        if (is_null($task->assigned_to)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot set a status on an unassigned task.',
+            ], 422);
         }
 
         $oldStatusId = $task->status_id;
