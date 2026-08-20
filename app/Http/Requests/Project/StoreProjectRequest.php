@@ -22,8 +22,9 @@ class StoreProjectRequest extends FormRequest
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'allow_commit' => 'nullable|boolean',
+            'allow_join_requests' => 'nullable|boolean',
             'allow_reactions' => 'nullable|boolean',
-            'chain_id' => 'nullable|exists:chains,id', 
+            'chain_id' => 'nullable|exists:chains,id',
 
         ];
     }
