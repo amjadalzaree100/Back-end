@@ -24,15 +24,15 @@ class TaskPolicy
         }
 
         // Manager or member can view tasks within their group
-        if ($task->group_id) {
-            $group = $task->group;
+        if ($task->assigned_group_id) {
+            $group = $task->assignedGroup;
             if ($group && ($group->isManager($user->id) || $group->isMember($user->id))) {
                 return true;
             }
         }
 
         // User can view tasks assigned to them
-        return $task->taskAssignments()->where('user_id', $user->id)->exists();
+        return $task->assigned_to === $user->id;
     }
 
     /**
@@ -62,30 +62,13 @@ class TaskPolicy
             return true;
         }
 
-        // Project manager can also create group tasks
-        if ($task->project->isManager($user->id)) {
-            return true;
+        // Group manager can create tasks for their group
+        if ($task->assigned_group_id) {
+            $group = $task->assignedGroup;
+            return $group && $group->isManager($user->id);
         }
 
         return false;
-    }
-
-    /**
-     * Determine if a user can create a manager task (task with subtasks, cannot be assigned)
-     *
-     * @param User $user The authenticated user
-     * @param Task $task The parent task context
-     * @return bool
-     */
-    public function createManagerTask(User $user, Task $task): bool
-    {
-        // User must be manager of the group this task belongs to
-        if ($task->group_id) {
-            $group = $task->group;
-            return $group && $group->isManager($user->id);
-        }
-        // Or project owner
-        return $task->project->isOwner($user->id);
     }
 
     /**
@@ -108,8 +91,8 @@ class TaskPolicy
         }
 
         // Group manager can create subtasks for tasks within their group
-        if ($parentTask->group_id) {
-            $group = $parentTask->group;
+        if ($parentTask->assigned_group_id) {
+            $group = $parentTask->assignedGroup;
             return $group && $group->isManager($user->id);
         }
 

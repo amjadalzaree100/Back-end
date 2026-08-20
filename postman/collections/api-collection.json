@@ -2383,7 +2383,7 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "POST create group task. Body: group_id (REQUIRED, must exist in groups), title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses).",
+                        "description": "POST create group task. Body: assigned_group_id (REQUIRED, must exist in groups), title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses).",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/group-tasks",
                             "host": ["{{baseURL}}"],
@@ -2391,7 +2391,7 @@
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"group_id\": 1,\n    \"title\": \"Group Task\",\n    \"description\": \"Task assigned to a group\",\n    \"priority\": \"medium\",\n    \"due_date\": \"2026-08-20\",\n    \"status_id\": 1\n}",
+                            "raw": "{\n    \"assigned_group_id\": 1,\n    \"title\": \"Group Task\",\n    \"description\": \"Task assigned to a group\",\n    \"priority\": \"medium\",\n    \"due_date\": \"2026-08-20\",\n    \"status_id\": 1\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -4087,7 +4087,7 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "POST detach all tasks from a group (owner-only). Sets group_id and assigned_group_id to null — no body.",
+                        "description": "POST detach all tasks from a group (owner-only). Sets assigned_group_id to null — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{{project_id}}/groups/{{group_id}}/detach-tasks",
                             "host": ["{{baseURL}}"],

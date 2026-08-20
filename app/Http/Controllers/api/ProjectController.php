@@ -438,7 +438,6 @@ class ProjectController extends Controller
 
             // 2. Delete tasks and related data
             foreach ($project->tasks()->withTrashed()->get() as $task) {
-                $task->taskAssignments()->forceDelete();
                 $task->comments()->forceDelete();
                 $task->dependencies()->detach();
                 $task->dependents()->detach();
@@ -448,7 +447,6 @@ class ProjectController extends Controller
             // 3. Delete groups and their tasks
             foreach ($project->groups()->withTrashed()->get() as $group) {
                 foreach ($group->groupTasks()->withTrashed()->get() as $groupTask) {
-                    $groupTask->taskAssignments()->forceDelete();
                     $groupTask->forceDelete();
                 }
                 $group->members()->detach();

@@ -18,7 +18,6 @@ class EventServiceProvider extends ServiceProvider
             \App\Listeners\UpdateUserProjectsCountOnJoin::class,
         ],
         \App\Events\ManagerTaskCompleted::class => [
-            \App\Listeners\UpdateManagerTaskStatus::class,
             \App\Listeners\NotifyManagerTaskCompleted::class,
         ],
         \App\Events\TaskNotificationEvent::class => [

@@ -32,13 +32,57 @@ class TaskTransferService
         DB::beginTransaction();
 
         try {
-            // Clone the task AND its subtasks
-            $newTask = $task->cloneForTransfer($targetProjectId, $newStatusId, $userId);
+            // 1. Clone the parent task (transferred tasks are unassigned)
+            $newTask = $task->replicate();
+            $newTask->project_id = $targetProjectId;
+            $newTask->assigned_to = null;
+            $newTask->assigned_group_id = null;
+            $newTask->is_archived = false;
+            $newTask->parent_task_id = null;
+            $newTask->transferred_from_task_id = $task->id;
+            $newTask->transferred_to_task_id = null;
 
-            // Archive the original task
+            if ($newStatusId) {
+                $newTask->status_id = $newStatusId;
+            }
+
+            $newTask->save();
+
+            // Clean parent task relationships
+            $newTask->dependencies()->detach();
+            $newTask->dependents()->detach();
+
+            // 2. Clone all subtasks (transferred subtasks are unassigned)
+            $subtaskMapping = [];
+
+            foreach ($task->subTasks as $subTask) {
+                $newSubTask = $subTask->replicate();
+                $newSubTask->project_id = $targetProjectId;
+                $newSubTask->parent_task_id = $newTask->id;
+                $newSubTask->assigned_to = null;
+                $newSubTask->assigned_group_id = null;
+                $newSubTask->is_archived = false;
+                $newSubTask->transferred_from_task_id = $subTask->id;
+                $newSubTask->transferred_to_task_id = null;
+
+                if ($newStatusId) {
+                    $newSubTask->status_id = $newStatusId;
+                }
+
+                $newSubTask->save();
+
+                // Clean subtask relationships
+                $newSubTask->dependencies()->detach();
+                $newSubTask->dependents()->detach();
+
+                $subtaskMapping[$subTask->id] = $newSubTask;
+            }
+
+            // 3. Archive the original task and point it to the clone
             $task->archive();
+            $task->update(['transferred_to_task_id' => $newTask->id]);
 
-            // 1. Create transfer record for the parent task
+            // 4. Create transfer record for the parent task
             TaskTransfer::create([
                 'task_id' => $newTask->id,
                 'from_project_id' => $sourceProject->id,
@@ -50,19 +94,17 @@ class TaskTransferService
                 'transferred_at' => now(),
             ]);
 
-            // 2. Create transfer records for all subtasks
-            $originalSubtasks = $task->subTasks;
-            $newSubtasks = $newTask->subTasks;
+            // 5. Create transfer records for all subtasks
+            foreach ($task->subTasks as $subTask) {
+                $newSubTask = $subtaskMapping[$subTask->id] ?? null;
 
-            foreach ($originalSubtasks as $index => $originalSubtask) {
-                if (isset($newSubtasks[$index])) {
-                    $newSubtask = $newSubtasks[$index];
+                if ($newSubTask) {
                     TaskTransfer::create([
-                        'task_id' => $newSubtask->id,
+                        'task_id' => $newSubTask->id,
                         'from_project_id' => $sourceProject->id,
                         'to_project_id' => $targetProject->id,
-                        'from_task_id' => $originalSubtask->id,
-                        'to_task_id' => $newSubtask->id,
+                        'from_task_id' => $subTask->id,
+                        'to_task_id' => $newSubTask->id,
                         'transferred_by' => $userId,
                         'note' => $note . ' (Subtask)',
                         'transferred_at' => now(),

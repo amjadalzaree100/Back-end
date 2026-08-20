@@ -9,9 +9,6 @@ class TaskResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $userId = $request->user()?->id;
-        $userAssignment = $this->taskAssignments?->firstWhere('user_id', $userId);
-
         $displayType = $this->getDisplayType();
 
         return [
@@ -22,15 +19,6 @@ class TaskResource extends JsonResource
             'type' => $displayType,
             'type_label' => $this->getDisplayTypeLabel(),
 
-            // Group relations
-            'group_id' => $this->group_id,
-            'group' => $this->whenLoaded('group', function () {
-                return [
-                    'id' => $this->group->id,
-                    'name' => $this->group->name,
-                ];
-            }),
-
             'parent_task_id' => $this->parent_task_id,
             'parent_task' => $this->whenLoaded('parentTask', function () {
                 return [
@@ -40,7 +28,7 @@ class TaskResource extends JsonResource
             }),
 
             'subtasks' => $this->whenLoaded('subTasks', function () {
-                return TaskResource::collection($this->subTasks->load(['status', 'assignee', 'taskAssignments']));
+                return TaskResource::collection($this->subTasks->load(['status', 'assignee']));
             }),
             'subtasks_count' => $this->subTasks->count(),
 
@@ -80,34 +68,7 @@ class TaskResource extends JsonResource
                 ];
             }),
 
-            'assignments' => $this->whenLoaded('taskAssignments', function () {
-                return $this->taskAssignments->map(function ($assignment) {
-                    return [
-                        'id' => $assignment->id,
-                        'user_id' => $assignment->user_id,
-                        'user' => [
-                            'id' => $assignment->user->id,
-                            'name' => $assignment->user->name,
-                            'avatar' => $assignment->user->profile?->avatar,
-                        ],
-                        'status_id' => $assignment->status_id,
-                        'status' => $assignment->status?->name,
-                        'started_at' => $assignment->started_at?->toISOString(),
-                        'completed_at' => $assignment->completed_at?->toISOString(),
-                        'is_completed' => !is_null($assignment->completed_at),
-                    ];
-                });
-            }),
-            'assignments_count' => $this->taskAssignments->count(),
-
-            'my_assignment' => $userAssignment ? [
-                'id' => $userAssignment->id,
-                'status_id' => $userAssignment->status_id,
-                'status' => $userAssignment->status?->name,
-                'started_at' => $userAssignment->started_at?->toISOString(),
-                'completed_at' => $userAssignment->completed_at?->toISOString(),
-                'is_completed' => !is_null($userAssignment->completed_at),
-            ] : null,
+            'assignments_count' => $this->assigned_to ? 1 : 0,
 
             'created_by' => $this->created_by,
             'creator' => $this->whenLoaded('creator', function () {
@@ -150,10 +111,6 @@ class TaskResource extends JsonResource
             return 'groupTask';
         }
 
-        if ($this->isManagerTask()) {
-            return 'managerTask';
-        }
-
         return 'projectTask';
     }
 
@@ -162,7 +119,6 @@ class TaskResource extends JsonResource
         return match ($this->getDisplayType()) {
             'projectTask' => 'Project Task',
             'groupTask' => 'Group Task',
-            'managerTask' => 'Manager Task',
             'subtask' => 'Subtask',
             default => 'Task',
         };

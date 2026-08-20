@@ -2,11 +2,9 @@
 
 namespace App\Models;
 
-use App\Events\ManagerTaskCompleted;
 use App\Events\TaskCompleted;
 use App\Models\Project;
 use App\Models\Reminder;
-use App\Models\TaskAssignment;
 use App\Models\TaskAssignmentHistory;
 use App\Models\TaskStatusHistory;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +13,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 
 
 
@@ -37,7 +34,6 @@ class Task extends Model
         'assigned_to',
         'completed_at',
         'started_at',
-        'group_id',
         'parent_task_id',
         'allow_subtasks',
         'can_be_assigned',
@@ -67,19 +63,16 @@ class Task extends Model
     {
         static::deleting(function ($task) {
             if ($task->isForceDeleting()) {
-                $task->taskAssignments()->forceDelete();
                 $task->comments()->forceDelete();
                 $task->subTasks()->forceDelete();
                 $task->dependencies()->detach();
             } else {
-                $task->taskAssignments()->delete();
                 $task->comments()->delete();
                 $task->subTasks()->delete();
             }
         });
 
         static::restoring(function ($task) {
-            $task->taskAssignments()->withTrashed()->restore();
             $task->comments()->withTrashed()->restore();
             $task->subTasks()->withTrashed()->restore();
         });
@@ -132,77 +125,6 @@ class Task extends Model
         return $this->update(['is_archived' => true]);
     }
 
-    // Clone the task for transfer to a new project
-    /**
-     * Clone the task for transfer to a new project, including all subtasks.
-     */
-    public function cloneForTransfer(int $targetProjectId, ?int $newStatusId = null, ?int $userId = null): Task
-    {
-        DB::beginTransaction();
-
-        try {
-            // 1. Clone the parent task
-            $clone = $this->replicate();
-            $clone->project_id = $targetProjectId;
-            $clone->assigned_to = null;
-            $clone->assigned_group_id = null;
-            $clone->is_archived = false;
-            $clone->parent_task_id = null;
-            $clone->transferred_from_task_id = $this->id;
-            $clone->transferred_to_task_id = null;
-
-            if ($newStatusId) {
-                $clone->status_id = $newStatusId;
-            }
-
-            $clone->save();
-
-            // Clean parent task relationships
-            $clone->assignments()->detach();
-            $clone->dependencies()->detach();
-            $clone->dependents()->detach();
-
-            // 2. Clone all subtasks
-            $subtaskMapping = [];
-
-            foreach ($this->subTasks as $subTask) {
-                $newSubTask = $subTask->replicate();
-                $newSubTask->project_id = $targetProjectId;
-                $newSubTask->parent_task_id = $clone->id;
-                $newSubTask->assigned_to = null;
-                $newSubTask->assigned_group_id = null;
-                $newSubTask->is_archived = false;
-                $newSubTask->transferred_from_task_id = $subTask->id;
-                $newSubTask->transferred_to_task_id = null;
-
-                if ($newStatusId) {
-                    $newSubTask->status_id = $newStatusId;
-                }
-
-                $newSubTask->save();
-
-                // Clean subtask relationships
-                $newSubTask->assignments()->detach();
-                $newSubTask->dependencies()->detach();
-                $newSubTask->dependents()->detach();
-
-                $subtaskMapping[$subTask->id] = $newSubTask->id;
-            }
-
-            // 3. Update original task to point to the clone
-            $this->update(['transferred_to_task_id' => $clone->id]);
-
-            DB::commit();
-
-            // 4. Load subtasks for the cloned task before returning
-            $clone->load('subTasks');
-
-            return $clone;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
@@ -223,12 +145,6 @@ class Task extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
-    }
-
-    public function assignees(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'task_assignments')
-            ->withTimestamps();
     }
 
     public function comments(): HasMany
@@ -258,11 +174,6 @@ class Task extends Model
             ->withTimestamps();
     }
 
-    public function group(): BelongsTo
-    {
-        return $this->belongsTo(Group::class, 'group_id');
-    }
-
     public function parentTask(): BelongsTo
     {
         return $this->belongsTo(Task::class, 'parent_task_id');
@@ -278,19 +189,14 @@ class Task extends Model
         return $this->belongsTo(Group::class, 'assigned_group_id');
     }
 
-    public function taskAssignments(): HasMany
-    {
-        return $this->hasMany(TaskAssignment::class, 'task_id');
-    }
-
     public function isProjectTask(): bool
     {
-        return is_null($this->group_id) && is_null($this->parent_task_id) && is_null($this->assigned_group_id);
+        return is_null($this->assigned_group_id) && is_null($this->parent_task_id);
     }
 
     public function isGroupTask(): bool
     {
-        return !is_null($this->assigned_group_id) && is_null($this->parent_task_id);
+        return !is_null($this->assigned_group_id);
     }
 
     public function isSubTask(): bool
@@ -483,7 +389,7 @@ class Task extends Model
 
     public function getAssignmentsCountAttribute(): int
     {
-        return $this->assignees()->count();
+        return $this->assigned_to ? 1 : 0;
     }
 
     public function getDependenciesCountAttribute(): int
@@ -508,12 +414,7 @@ class Task extends Model
 
     public function scopeByAssignee(Builder $query, int $userId)
     {
-        return $query->where(function ($q) use ($userId) {
-            $q->where('assigned_to', $userId)
-                ->orWhereHas('assignees', function ($sub) use ($userId) {
-                    $sub->where('user_id', $userId);
-                });
-        })->distinct();
+        return $query->where('assigned_to', $userId);
     }
 
     public function scopeOverdue(Builder $query)
@@ -560,15 +461,13 @@ class Task extends Model
 
     public function scopeProjectTasks(Builder $query, ?int $userId = null)
     {
-        $query->whereNull('group_id')
-            ->whereNull('parent_task_id')
+        $query->whereNull('parent_task_id')
             ->whereNull('assigned_group_id');
 
         if ($userId) {
             $query->where(function ($q) use ($userId) {
-                $q->whereHas('taskAssignments', function ($sub) use ($userId) {
-                    $sub->where('user_id', $userId);
-                })->orWhere('created_by', $userId);
+                $q->where('assigned_to', $userId)
+                    ->orWhere('created_by', $userId);
             });
         }
 
@@ -577,14 +476,7 @@ class Task extends Model
 
     public function scopeGroupTasks(Builder $query)
     {
-        return $query->whereNotNull('assigned_group_id')->whereNull('parent_task_id');
-    }
-
-    public function scopeManagerTasks(Builder $query)
-    {
-        return $query->whereNotNull('group_id')
-            ->where('can_be_assigned', false)
-            ->where('allow_subtasks', true);
+        return $query->whereNotNull('assigned_group_id');
     }
 
     public function scopeSubTasks(Builder $query)
@@ -592,54 +484,13 @@ class Task extends Model
         return $query->whereNotNull('parent_task_id');
     }
 
-    public function isProjectParentTask(): bool
-    {
-        return $this->isProjectTask() && $this->allow_subtasks == true;
-    }
-
-    public function isManagerTask(): bool
-    {
-        return !is_null($this->group_id) && is_null($this->assigned_group_id) && is_null($this->parent_task_id);
-    }
-
-    public function isManagerParentTask(): bool
-    {
-        return $this->isManagerTask() && $this->allow_subtasks == true;
-    }
-
-    public function isManagerSubtask(): bool
-    {
-        return !is_null($this->parent_task_id) && !is_null($this->group_id);
-    }
-
     public function canBeAssigned(): bool
     {
-        // 1. Project Task with Subtask
-        if ($this->isProjectParentTask() && $this->subTasks()->exists()) {
-            return false;
-        }
-
-        // 2. Manager Task with Subtasks
-        if ($this->isManagerParentTask() && $this->subTasks()->exists()) {
-            return false;
-        }
-
-        // 3. Project Task
-        if ($this->isProjectTask() || $this->isGroupTask()) {
-            return $this->can_be_assigned;
-        }
-
-        // 4. Manager Task
-        if ($this->isManagerTask() && !$this->subTasks()->exists()) {
+        if (!is_null($this->parent_task_id)) {
             return true;
         }
 
-        // 5. Manager Subtask
-        if ($this->isManagerSubtask()) {
-            return true;
-        }
-
-        return false;
+        return $this->can_be_assigned;
     }
 
 

@@ -10,6 +10,7 @@ use App\Http\Resources\TaskResource;
 use App\Models\Group;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\TaskAssignmentHistory;
 use App\Models\TaskStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -29,8 +30,6 @@ class TaskAssignmentController extends Controller
             ], 404);
         }
 
-        $assignments = $task->assignees()->get();
-
         return response()->json([
             'success' => true,
             'data' => [
@@ -39,12 +38,8 @@ class TaskAssignmentController extends Controller
                     'name' => $task->assignee->name,
                     'email' => $task->assignee->email,
                 ] : null,
-                'additional_assignees' => $assignments->map(fn($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ]),
-                'total' => $assignments->count() + ($task->assigned_to ? 1 : 0),
+                'additional_assignees' => [],
+                'total' => $task->assigned_to ? 1 : 0,
             ],
         ]);
     }
@@ -74,6 +69,13 @@ class TaskAssignmentController extends Controller
                 'success' => false,
                 'message' => 'Task does not belong to this project',
             ], 404);
+        }
+
+        if (!$task->canBeAssigned()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This task cannot be assigned.',
+            ], 422);
         }
 
         // Find groups managed by this user in this project
@@ -116,9 +118,11 @@ class TaskAssignmentController extends Controller
             ], 422);
         }
 
-        // Validate assignees
+        $assigneeId = $request->user_ids[0];
+
+        // Validate the assignee
         if (!$isOwner && $taskBelongsToMyGroup) {
-            // Group manager assigning to a group task: assignees must be group members
+            // Group manager assigning to a group task: assignee must be a group member
             $assignedGroup = Group::find($task->assigned_group_id);
             if (!$assignedGroup) {
                 return response()->json([
@@ -132,48 +136,38 @@ class TaskAssignmentController extends Controller
                     'message' => 'Cannot assign tasks in an inactive group.',
                 ], 422);
             }
-            $groupMemberIds = $assignedGroup->members()->pluck('users.id')->toArray();
-
-            foreach ($request->user_ids as $assigneeId) {
-                if (!in_array($assigneeId, $groupMemberIds)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "User ID {$assigneeId} is not a member of this group.",
-                    ], 422);
-                }
+            if (!$assignedGroup->isMember($assigneeId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "User ID {$assigneeId} is not a member of this group.",
+                ], 422);
             }
         } else {
-            // Owner or project manager assigning to a non-group task: assignees must be project members
+            // Owner or project manager assigning: assignee must be a project member
             $projectUsers = $project->users()->pluck('users.id')->toArray();
             $projectUsers[] = $project->created_by;
 
-            foreach ($request->user_ids as $assigneeId) {
-                if (!in_array($assigneeId, $projectUsers)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "User ID {$assigneeId} is not a member of this project",
-                    ], 422);
-                }
+            if (!in_array($assigneeId, $projectUsers)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "User ID {$assigneeId} is not a member of this project",
+                ], 422);
             }
         }
 
         try {
             DB::beginTransaction();
 
-            $pivotData = collect($request->user_ids)->mapWithKeys(fn($id) => [
-                $id => ['status_id' => $request->status_id],
-            ])->all();
+            $task->assigned_to = $assigneeId;
+            $task->save();
 
-            $task->assignees()->syncWithoutDetaching($pivotData);
-            foreach ($request->user_ids as $assignedUserId) {
-                DB::table('task_assignment_histories')->insert([
-                    'task_id' => $task->id,
-                    'user_id' => $assignedUserId,
-                    'assigned_by' => $userId,
-                    'action' => 'assigned',
-                    'assigned_at' => now(),
-                ]);
-            }
+            TaskAssignmentHistory::create([
+                'task_id' => $task->id,
+                'user_id' => $assigneeId,
+                'assigned_by' => $userId,
+                'action' => 'assigned',
+                'assigned_at' => now(),
+            ]);
 
             DB::commit();
         } catch (\Exception $e) {
@@ -181,13 +175,13 @@ class TaskAssignmentController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to assign users',
+                'message' => 'Failed to assign user',
                 'error' => $e->getMessage(),
             ], 500);
         }
 
         TaskNotificationEvent::dispatch(
-            userIds: $request->user_ids,
+            userIds: [$assigneeId],
             scenario: 'assigned',
             task: $task,
             actor: $request->user(),
@@ -195,12 +189,12 @@ class TaskAssignmentController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Users assigned to task successfully',
+            'message' => 'User assigned to task successfully',
             'data' => [
-                'assigned_users' => $task->assignees()->get()->map(fn($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                ]),
+                'assigned_to' => $task->assignee ? [
+                    'id' => $task->assignee->id,
+                    'name' => $task->assignee->name,
+                ] : null,
             ],
         ], 201);
     }
@@ -216,14 +210,7 @@ class TaskAssignmentController extends Controller
             ], 404);
         }
 
-        if ($task->assigned_to === $userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot unassign the primary assignee. Update the task instead.',
-            ], 422);
-        }
-
-        if (!$task->assignees()->where('user_id', $userId)->exists()) {
+        if ($task->assigned_to !== $userId) {
             return response()->json([
                 'success' => false,
                 'message' => 'User is not assigned to this task',
@@ -234,9 +221,10 @@ class TaskAssignmentController extends Controller
         try {
             DB::beginTransaction();
 
-            $task->assignees()->detach($userId);
+            $task->assigned_to = null;
+            $task->save();
 
-            DB::table('task_assignment_histories')->insert([
+            TaskAssignmentHistory::create([
                 'task_id' => $task->id,
                 'user_id' => $userId,
                 'assigned_by' => $currentUserId,
@@ -265,9 +253,8 @@ class TaskAssignmentController extends Controller
     {
         $userId = $request->user()->id;
 
-        $tasks = Task::with(['project', 'status', 'creator', 'assignee', 'assignees'])
+        $tasks = Task::with(['project', 'status', 'creator', 'assignee'])
             ->where('assigned_to', $userId)
-            ->orWhereHas('assignees', fn($q) => $q->where('user_id', $userId))
             ->orderBy('due_date')
             ->orderBy('priority', 'desc')
             ->get();
