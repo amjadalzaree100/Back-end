@@ -21,14 +21,21 @@ class TransferManagerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'new_manager_id' => 'required|exists:users,id',
+            'new_manager_id' => 'required_without:userId|exists:users,id',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->route('userId') && !$this->has('new_manager_id')) {
+            $this->merge(['new_manager_id' => $this->route('userId')]);
+        }
     }
 
     public function messages(): array
     {
         return [
-            'new_manager_id.required' => 'You must select a new manager',
+            'new_manager_id.required_without' => 'You must select a new manager',
             'new_manager_id.exists' => 'Selected user does not exist',
         ];
     }

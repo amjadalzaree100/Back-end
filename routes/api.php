@@ -232,6 +232,7 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'
     Route::post('/projects/{project}/groups/{group}/members', [GroupMemberController::class, 'addMember']);
     Route::delete('/projects/{project}/groups/{group}/members/{userId}', [GroupMemberController::class, 'removeMember']);
     Route::post('/projects/{project}/groups/{group}/transfer-manager', [GroupMemberController::class, 'transferManager']);
+    Route::post('/projects/{project}/groups/{group}/transfer-manager/{userId}', [GroupMemberController::class, 'transferManager']);
     Route::post('/projects/{project}/groups/{group}/set-manager', [GroupMemberController::class, 'setManager']);
     Route::post('/projects/{project}/groups/{group}/expel-all-members', [GroupController::class, 'expelAllMembers']);
     Route::post('/projects/{project}/groups/{group}/detach-tasks', [GroupController::class, 'detachTasks']);
