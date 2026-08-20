@@ -10,6 +10,7 @@ use App\Http\Resources\TaskResource;
 use App\Models\Group;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\TaskStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -103,6 +104,18 @@ class TaskAssignmentController extends Controller
             }
         }
 
+        // Validate the provided status belongs to this project
+        $status = TaskStatus::where('id', $request->status_id)
+            ->where('project_id', $project->id)
+            ->first();
+
+        if (!$status) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Selected status does not belong to this project.',
+            ], 422);
+        }
+
         // Validate assignees
         if (!$isOwner && $taskBelongsToMyGroup) {
             // Group manager assigning to a group task: assignees must be group members
@@ -147,7 +160,11 @@ class TaskAssignmentController extends Controller
         try {
             DB::beginTransaction();
 
-            $task->assignees()->syncWithoutDetaching($request->user_ids);
+            $pivotData = collect($request->user_ids)->mapWithKeys(fn($id) => [
+                $id => ['status_id' => $request->status_id],
+            ])->all();
+
+            $task->assignees()->syncWithoutDetaching($pivotData);
             foreach ($request->user_ids as $assignedUserId) {
                 DB::table('task_assignment_histories')->insert([
                     'task_id' => $task->id,

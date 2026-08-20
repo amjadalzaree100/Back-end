@@ -115,7 +115,7 @@ class ProjectController extends Controller
                 $q->with(['user', 'user.profile'])->whereNull('parent_id')->latest();
             },
             'reactions',
-            'chains', 
+            'chains',
         ]);
 
         if ($canViewFullDetails) {
@@ -157,7 +157,7 @@ class ProjectController extends Controller
                 'start_date' => now(),
                 'end_date' => null,
                 'created_by' => $request->user()->id,
-                'allow_join_requests' => $request->allow_join_requests ?? false,
+                'allow_join_requests' => $request->input('allow_join_requests', true),
                 'allow_commit' => $request->input('allow_commit', true),
                 'allow_reactions' => $request->input('allow_reactions', true),
             ];
@@ -193,7 +193,6 @@ class ProjectController extends Controller
                 'message' => 'Project created successfully',
                 'data' => new ProjectResource($project->load('creator'))
             ], 201);
-
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Project creation failed: ' . $e->getMessage(), [
@@ -276,7 +275,6 @@ class ProjectController extends Controller
                 'message' => 'Project updated successfully',
                 'data' => new ProjectResource($project->load('creator'))
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Project update failed: ' . $e->getMessage(), [
@@ -341,7 +339,6 @@ class ProjectController extends Controller
                 'success' => true,
                 'message' => 'Project deleted successfully'
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Project deletion failed: ' . $e->getMessage(), [
@@ -690,5 +687,4 @@ class ProjectController extends Controller
             ], 500);
         }
     }
-
 }
