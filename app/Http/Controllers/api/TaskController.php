@@ -1729,6 +1729,185 @@ class TaskController extends Controller
         }
     }
 
+    /**
+     * Get tasks related to a specific group that have no status (not yet placed on the board).
+     * Includes both manager tasks (group_id) and group tasks (assigned_group_id).
+     * Excludes subtasks (they are managed under their parent).
+     */
+    public function getGroupBoard(Project $project, Group $group, Request $request): JsonResponse
+    {
+        try {
+            $userId = $request->user()->id;
+
+            if ($group->project_id !== $project->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Group does not belong to this project.',
+                ], 404);
+            }
+
+            // Check access: owner, group manager, or group member
+            $isOwner = $project->isOwner($userId);
+            $isGroupManager = $group->isManager($userId);
+            $isGroupMember = $group->isMember($userId);
+
+            if (!$isOwner && !$isGroupManager && !$isGroupMember) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have access to this group board.',
+                ], 403);
+            }
+
+            $tasks = Task::where('project_id', $project->id)
+                ->whereNull('status_id')
+                ->whereNull('parent_task_id')
+                ->where(function ($q) use ($group) {
+                    $q->where('group_id', $group->id)
+                        ->orWhere('assigned_group_id', $group->id);
+                })
+                ->where('is_archived', false)
+                ->with([
+                    'creator',
+                    'assignee',
+                    'taskAssignments.user',
+                    'assignedGroup',
+                    'group',
+                    'subTasks.status',
+                    'subTasks.assignee',
+                ])
+                ->orderBy('position')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => TaskResource::collection($tasks),
+                'total' => $tasks->count(),
+                'group' => [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch group board: ' . $e->getMessage(), [
+                'group_id' => $group->id,
+                'project_id' => $project->id,
+                'user_id' => $request->user()->id ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load group board. Please try again later.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all tasks related to a specific group, grouped by status for Kanban view.
+     * Includes both manager tasks (group_id) and group tasks (assigned_group_id).
+     * Excludes subtasks (they are managed under their parent).
+     */
+    public function getGroupKanban(Project $project, Group $group, Request $request): JsonResponse
+    {
+        try {
+            $userId = $request->user()->id;
+
+            if ($group->project_id !== $project->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Group does not belong to this project.',
+                ], 404);
+            }
+
+            // Check access: owner, group manager, or group member
+            $isOwner = $project->isOwner($userId);
+            $isGroupManager = $group->isManager($userId);
+            $isGroupMember = $group->isMember($userId);
+
+            if (!$isOwner && !$isGroupManager && !$isGroupMember) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have access to this group kanban.',
+                ], 403);
+            }
+
+            $statuses = $project->taskStatuses()
+                ->orderBy('position')
+                ->get();
+
+            $tasks = Task::where('project_id', $project->id)
+                ->whereNull('parent_task_id')
+                ->where(function ($q) use ($group) {
+                    $q->where('group_id', $group->id)
+                        ->orWhere('assigned_group_id', $group->id);
+                })
+                ->where('is_archived', false)
+                ->with([
+                    'status',
+                    'creator',
+                    'assignee',
+                    'taskAssignments.user',
+                    'assignedGroup',
+                    'group',
+                    'subTasks.status',
+                    'subTasks.assignee',
+                    'subTasks.taskAssignments',
+                ])
+                ->orderBy('position')
+                ->get();
+
+            $grouped = $tasks->groupBy(function ($task) {
+                return $task->status_id ?? 'no-status';
+            });
+
+            $kanban = $statuses->map(function ($status) use ($grouped) {
+                $statusTasks = $grouped->get($status->id, collect());
+
+                return [
+                    'status' => [
+                        'id' => $status->id,
+                        'name' => $status->name,
+                        'position' => $status->position,
+                    ],
+                    'tasks' => TaskResource::collection($statusTasks),
+                    'tasks_count' => $statusTasks->count(),
+                ];
+            });
+
+            // Add no-status column if there are tasks without a status
+            if ($grouped->has('no-status')) {
+                $noStatusTasks = $grouped->get('no-status');
+
+                $kanban->push([
+                    'status' => null,
+                    'tasks' => TaskResource::collection($noStatusTasks),
+                    'tasks_count' => $noStatusTasks->count(),
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $kanban->values(),
+                'total_tasks' => $tasks->count(),
+                'group' => [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch group kanban: ' . $e->getMessage(), [
+                'group_id' => $group->id,
+                'project_id' => $project->id,
+                'user_id' => $request->user()->id ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load group kanban. Please try again later.',
+            ], 500);
+        }
+    }
+
 
     protected TaskTransferService $taskTransferService;
 
