@@ -1509,6 +1509,165 @@ class TaskController extends Controller
     }
 
     /**
+     * Get all completed group tasks for a specific group.
+     * (tasks assigned to the group: assigned_group_id = group.id)
+     */
+    public function getGroupCompletedTasks(Project $project, Group $group, Request $request): JsonResponse
+    {
+        try {
+            $this->checkProjectAccess($project);
+
+            $tasks = Task::where('project_id', $project->id)
+                ->where('assigned_group_id', $group->id)
+                ->whereNotNull('completed_at')
+                ->with(['status', 'creator', 'assignee', 'assignedGroup', 'group', 'taskAssignments.user'])
+                ->orderBy('completed_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => TaskResource::collection($tasks),
+                'total' => $tasks->count(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch group completed tasks: ' . $e->getMessage(), [
+                'project_id' => $project->id,
+                'group_id' => $group->id,
+                'user_id' => $request->user()->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load group completed tasks. Please try again later.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all archived group tasks for a specific group.
+     * (tasks assigned to the group: assigned_group_id = group.id)
+     */
+    public function getGroupArchivedTasks(Project $project, Group $group, Request $request): JsonResponse
+    {
+        try {
+            $this->checkProjectAccess($project);
+
+            $tasks = Task::where('project_id', $project->id)
+                ->where('assigned_group_id', $group->id)
+                ->where('is_archived', true)
+                ->with(['status', 'creator', 'assignee', 'assignedGroup', 'group', 'taskAssignments.user'])
+                ->orderBy('updated_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => TaskResource::collection($tasks),
+                'total' => $tasks->count(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch group archived tasks: ' . $e->getMessage(), [
+                'project_id' => $project->id,
+                'group_id' => $group->id,
+                'user_id' => $request->user()->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load group archived tasks. Please try again later.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get group tasks that are assigned to at least one member of the group.
+     * (tasks assigned to the group: assigned_group_id = group.id)
+     */
+    public function getGroupAssignedTasks(Project $project, Group $group, Request $request): JsonResponse
+    {
+        try {
+            $this->checkProjectAccess($project);
+
+            $groupMemberIds = $group->members()->pluck('users.id')->toArray();
+
+            $tasks = Task::where('project_id', $project->id)
+                ->where('assigned_group_id', $group->id)
+                ->where(function ($q) use ($groupMemberIds) {
+                    $q->whereIn('assigned_to', $groupMemberIds)
+                        ->orWhereHas('assignees', function ($sub) use ($groupMemberIds) {
+                            $sub->whereIn('user_id', $groupMemberIds);
+                        });
+                })
+                ->with(['status', 'creator', 'assignee', 'assignedGroup', 'group', 'taskAssignments.user'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => TaskResource::collection($tasks),
+                'total' => $tasks->count(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch group assigned tasks: ' . $e->getMessage(), [
+                'project_id' => $project->id,
+                'group_id' => $group->id,
+                'user_id' => $request->user()->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load group assigned tasks. Please try again later.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get group tasks that are NOT assigned to any member of the group.
+     * (tasks assigned to the group: assigned_group_id = group.id)
+     */
+    public function getGroupUnassignedTasks(Project $project, Group $group, Request $request): JsonResponse
+    {
+        try {
+            $this->checkProjectAccess($project);
+
+            $groupMemberIds = $group->members()->pluck('users.id')->toArray();
+
+            $tasks = Task::where('project_id', $project->id)
+                ->where('assigned_group_id', $group->id)
+                ->where(function ($q) use ($groupMemberIds) {
+                    $q->where(function ($inner) use ($groupMemberIds) {
+                        $inner->whereNull('assigned_to')
+                            ->orWhereNotIn('assigned_to', $groupMemberIds);
+                    })->where(function ($inner) use ($groupMemberIds) {
+                        $inner->whereDoesntHave('assignees')
+                            ->orWhereHas('assignees', function ($sub) use ($groupMemberIds) {
+                                $sub->whereNotIn('user_id', $groupMemberIds);
+                            });
+                    });
+                })
+                ->with(['status', 'creator', 'assignee', 'assignedGroup', 'group', 'taskAssignments.user'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => TaskResource::collection($tasks),
+                'total' => $tasks->count(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch group unassigned tasks: ' . $e->getMessage(), [
+                'project_id' => $project->id,
+                'group_id' => $group->id,
+                'user_id' => $request->user()->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load group unassigned tasks. Please try again later.'
+            ], 500);
+        }
+    }
+
+    /**
      * Get all group tasks for a specific project.
      */
     public function getGroupTasks(Project $project, Request $request): JsonResponse
