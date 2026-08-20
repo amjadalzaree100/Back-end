@@ -16,6 +16,7 @@ class AssignUsersRequest extends FormRequest
         return [
             'user_ids' => 'required|array|min:1',
             'user_ids.*' => 'required|exists:users,id',
+            'status_id' => 'required|exists:task_statuses,id',
         ];
     }
 
@@ -27,6 +28,8 @@ class AssignUsersRequest extends FormRequest
             'user_ids.min' => 'At least one user must be assigned',
             'user_ids.*.required' => 'Each user ID is required',
             'user_ids.*.exists' => 'One or more selected users do not exist',
+            'status_id.required' => 'A status ID is required',
+            'status_id.exists' => 'Selected status does not exist',
         ];
     }
 }
