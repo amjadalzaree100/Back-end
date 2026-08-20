@@ -12,9 +12,10 @@ class ReminderResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'user_id' => $this->user_id,
             'title' => $this->title,
             'message' => $this->message,
-            'remind_at' => $this->remind_at->toISOString(),
+            'remind_at' => $this->remind_at?->toISOString(),
             'status' => $this->status,
             'tasks' => TaskResource::collection($this->whenLoaded('tasks')),
             'created_at' => $this->created_at?->toISOString(),

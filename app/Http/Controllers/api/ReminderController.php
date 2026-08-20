@@ -97,7 +97,14 @@ class ReminderController extends Controller
 
             DB::beginTransaction();
 
-            $reminder->update($request->only(['title', 'message', 'remind_at']));
+            $updateData = $request->only(['title', 'message', 'remind_at']);
+
+            // If remind_at is being rescheduled, reset status to pending
+            if ($request->has('remind_at')) {
+                $updateData['status'] = 'pending';
+            }
+
+            $reminder->update($updateData);
 
             if ($request->has('task_ids')) {
                 $reminder->tasks()->sync($request->task_ids);
@@ -178,6 +185,19 @@ class ReminderController extends Controller
                 ], 422);
             }
 
+            // Validate the new date against the earliest due date of associated tasks
+            try {
+                Reminder::validateReminderDateAgainstTasks(
+                    $reminder->tasks()->pluck('tasks.id')->toArray(),
+                    $request->new_remind_at
+                );
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+
             DB::beginTransaction();
 
             $reminder->update([
@@ -225,7 +245,6 @@ class ReminderController extends Controller
 
             DB::beginTransaction();
 
-            $reminder->tasks()->detach();
             $reminder->delete();
 
             DB::commit();

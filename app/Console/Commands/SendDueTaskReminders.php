@@ -32,7 +32,7 @@ class SendDueTaskReminders extends Command
             $tasks = Task::whereNull('completed_at')
                 ->whereNotNull('due_date')
                 ->whereBetween('due_date', [$now, $deadline])
-                ->with(['assignee', 'project'])
+                ->with(['assignee', 'assignees', 'project', 'assignedGroup.members'])
                 ->get();
 
             if ($tasks->isEmpty()) {
@@ -83,6 +83,25 @@ class SendDueTaskReminders extends Command
                                 $actionUrl,
                                 $icon
                             );
+                            $notifiedUsers[] = $assigneeId;
+                        }
+                    }
+
+                    // Notify members of the assigned group (if this is a group task)
+                    if ($task->assignedGroup) {
+                        foreach ($task->assignedGroup->members as $member) {
+                            if (!in_array($member->id, $notifiedUsers)) {
+                                $this->notificationService->send(
+                                    $member->id,
+                                    $title,
+                                    $message,
+                                    'reminder',
+                                    ['task_id' => $task->id, 'due_date' => $task->due_date->toDateString()],
+                                    $actionUrl,
+                                    $icon
+                                );
+                                $notifiedUsers[] = $member->id;
+                            }
                         }
                     }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Project;
 use App\Models\ProjectReaction;
+use App\Models\Reminder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -175,6 +176,11 @@ class User extends Authenticatable
     public function tasks()
     {
         return $this->hasMany(Task::class, 'assigned_to');
+    }
+
+    public function reminders()
+    {
+        return $this->hasMany(Reminder::class);
     }
 
     public function comments()
