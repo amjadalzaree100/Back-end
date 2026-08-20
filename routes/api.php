@@ -218,6 +218,7 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     Route::get('/projects/{project}/groups/{group}/archived-tasks', [TaskController::class, 'getGroupArchivedTasks']);
     Route::get('/projects/{project}/groups/{group}/assigned-tasks', [TaskController::class, 'getGroupAssignedTasks']);
     Route::get('/projects/{project}/groups/{group}/unassigned-tasks', [TaskController::class, 'getGroupUnassignedTasks']);
+    Route::get('/projects/{project}/groups/{group}/kanban', [TaskController::class, 'getGroupKanban']);
 
 
 

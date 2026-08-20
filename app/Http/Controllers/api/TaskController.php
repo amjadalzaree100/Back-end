@@ -1803,8 +1803,10 @@ class TaskController extends Controller
     }
 
     /**
-     * Get all tasks related to a specific group, grouped by status for Kanban view.
-     * Includes both manager tasks (group_id) and group tasks (assigned_group_id).
+     * Get all tasks related to a specific group that are assigned to the group's members,
+     * grouped by status for Kanban view.
+     * Only group tasks (assigned_group_id) that are assigned to at least one group member.
+     * All project statuses are returned, even empty ones.
      * Excludes subtasks (they are managed under their parent).
      */
     public function getGroupKanban(Project $project, Group $group, Request $request): JsonResponse
@@ -1835,11 +1837,16 @@ class TaskController extends Controller
                 ->orderBy('position')
                 ->get();
 
+            $groupMemberIds = $group->members()->pluck('users.id')->toArray();
+
             $tasks = Task::where('project_id', $project->id)
                 ->whereNull('parent_task_id')
-                ->where(function ($q) use ($group) {
-                    $q->where('group_id', $group->id)
-                        ->orWhere('assigned_group_id', $group->id);
+                ->where('assigned_group_id', $group->id)
+                ->where(function ($q) use ($groupMemberIds) {
+                    $q->whereIn('assigned_to', $groupMemberIds)
+                        ->orWhereHas('assignees', function ($sub) use ($groupMemberIds) {
+                            $sub->whereIn('user_id', $groupMemberIds);
+                        });
                 })
                 ->where('is_archived', false)
                 ->with([
