@@ -122,13 +122,6 @@ class GroupMemberController extends Controller
             ], 422);
         }
 
-        if ($group->manager_id === $userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot remove the group manager. Transfer ownership first'
-            ], 403);
-        }
-
         if ($currentUserId === $userId) {
             return response()->json([
                 'success' => false,
@@ -175,13 +168,6 @@ class GroupMemberController extends Controller
     public function leaveGroup(Project $project, Group $group, Request $request): JsonResponse
     {
         $userId = $request->user()->id;
-
-        if ($group->manager_id === $userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Manager cannot leave the group. Transfer ownership first'
-            ], 403);
-        }
 
         if (!$group->isMember($userId)) {
             return response()->json([

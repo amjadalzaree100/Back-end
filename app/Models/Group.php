@@ -109,11 +109,13 @@ class Group extends Model
             return false;
         }
 
+        $this->members()->detach($userId);
+
+        // If the removed user was the group manager, clear the manager role
         if ($this->isManager($userId)) {
-            return false;
+            $this->update(['manager_id' => null]);
         }
 
-        $this->members()->detach($userId);
         return true;
     }
 
