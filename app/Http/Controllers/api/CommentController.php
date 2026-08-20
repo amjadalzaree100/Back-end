@@ -8,9 +8,11 @@ use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
+use App\Models\ProjectComment;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class CommentController extends Controller
@@ -29,6 +31,85 @@ class CommentController extends Controller
             'success' => true,
             'data' => CommentResource::collection($comments),
             'total' => $comments->count(),
+        ]);
+    }
+
+    public function myComments(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        $taskComments = Comment::with(['user', 'user.profile', 'task', 'task.project'])
+            ->where('user_id', $userId)
+            ->latest()
+            ->get()
+            ->map(fn (Comment $comment) => [
+                'id' => $comment->id,
+                'type' => 'task',
+                'content' => $comment->content,
+                'task_id' => $comment->task_id,
+                'task_title' => $comment->task?->title,
+                'project_id' => $comment->task?->project_id,
+                'project_name' => $comment->task?->project?->name,
+                'parent_id' => null,
+                'user' => [
+                    'id' => $comment->user->id ?? null,
+                    'name' => $comment->user->name ?? 'Unknown',
+                    'avatar' => $comment->user->profile?->avatar ?? null,
+                ],
+                'created_at' => $comment->created_at?->toISOString(),
+                'updated_at' => $comment->updated_at?->toISOString(),
+                'created_at_human' => $comment->created_at?->diffForHumans(),
+            ]);
+
+        $projectComments = ProjectComment::with(['user', 'user.profile', 'project'])
+            ->where('user_id', $userId)
+            ->latest()
+            ->get()
+            ->map(fn (ProjectComment $comment) => [
+                'id' => $comment->id,
+                'type' => 'project',
+                'content' => $comment->content,
+                'task_id' => null,
+                'task_title' => null,
+                'project_id' => $comment->project_id,
+                'project_name' => $comment->project?->name,
+                'parent_id' => $comment->parent_id,
+                'user' => [
+                    'id' => $comment->user->id ?? null,
+                    'name' => $comment->user->name ?? 'Unknown',
+                    'avatar' => $comment->user->profile?->avatar ?? null,
+                ],
+                'created_at' => $comment->created_at?->toISOString(),
+                'updated_at' => $comment->updated_at?->toISOString(),
+                'created_at_human' => $comment->created_at?->diffForHumans(),
+            ]);
+
+        $comments = $taskComments
+            ->concat($projectComments)
+            ->sortByDesc('created_at')
+            ->values();
+
+        $page = max((int) $request->query('page', 1), 1);
+        $perPage = max((int) $request->query('per_page', 20), 1);
+        $total = $comments->count();
+
+        $paginator = new LengthAwarePaginator(
+            $comments->forPage($page, $perPage)->values(),
+            $total,
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => $paginator->items(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
         ]);
     }
 
@@ -67,9 +148,7 @@ class CommentController extends Controller
             $userIds[] = $task->assigned_to;
         }
 
-        $additionalIds = $task->assigned_to ? [$task->assigned_to] : [];
-
-        $userIds = array_unique(array_merge($userIds, $additionalIds));
+        $userIds = array_unique($userIds);
 
         if (!empty($userIds)) {
             TaskNotificationEvent::dispatch(

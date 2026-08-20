@@ -304,6 +304,8 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
 
 // COMMENTS ROUTES (always accessible)
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
+    Route::get('/my-comments', [CommentController::class, 'myComments']);
+
     Route::prefix('tasks/{task}/comments')->group(function () {
         Route::get('/', [CommentController::class, 'index']);
         Route::get('/{comment}', [CommentController::class, 'show']);

@@ -17,6 +17,13 @@ class ProjectCommentController extends Controller
 {
     public function index(Request $request, Project $project): JsonResponse
     {
+        if (!$this->canAccessProjectComments($request, $project)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have access to this project comments',
+            ], 403);
+        }
+
         if (!$project->allow_commit) {
         return response()->json([
                 'success' => false,
@@ -39,6 +46,13 @@ class ProjectCommentController extends Controller
     }
     public function store(StoreProjectCommentRequest $request, Project $project): JsonResponse
     {
+        if (!$this->canAccessProjectComments($request, $project)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have access to this project comments',
+            ], 403);
+        }
+
         if (!$project->allow_commit) {
         return response()->json([
                 'success' => false,
@@ -46,10 +60,24 @@ class ProjectCommentController extends Controller
             ], 403);
         }
 
+        $validated = $request->validated();
+
+        if (!empty($validated['parent_id'])) {
+            $parentBelongsToProject = $project->projectComments()
+                ->where('id', $validated['parent_id'])
+                ->exists();
+
+            if (!$parentBelongsToProject) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Parent comment does not belong to this project',
+                ], 422);
+            }
+        }
+
         try {
             DB::beginTransaction();
 
-            $validated = $request->validated();
             $comment = $project->projectComments()->create([
                 'user_id' => $request->user()->id,
                 'content' => $validated['content'],
@@ -95,7 +123,7 @@ class ProjectCommentController extends Controller
             ], 404);
         }
 
-        if ($project->visibility !== 'public') {
+        if (!$this->canAccessProjectComments($request, $project)) {
             return response()->json([
                 'success' => false,
                 'message' => 'This project is not public'
@@ -133,7 +161,7 @@ class ProjectCommentController extends Controller
         try {
             DB::beginTransaction();
 
-            $comment->update(['content' => $request->input('content')]);
+            $comment->update(['content' => $request->validated()['content']]);
 
             DB::commit();
 
@@ -194,5 +222,20 @@ class ProjectCommentController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function canAccessProjectComments(Request $request, Project $project): bool
+    {
+        $userId = $request->user()?->id;
+
+        if (!$userId) {
+            return false;
+        }
+
+        if ($project->visibility === 'public') {
+            return true;
+        }
+
+        return $project->isOwner($userId) || $project->hasUser($userId);
     }
 }
