@@ -46,6 +46,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/', [AdminProjectController::class, 'index'])->name('index');
             Route::get('/{id}', [AdminProjectController::class, 'show'])->name('show');
             Route::delete('/{id}', [AdminProjectController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/suspend', [AdminProjectController::class, 'suspend'])->name('suspend');
+            Route::post('/{id}/unsuspend', [AdminProjectController::class, 'unsuspend'])->name('unsuspend');
         });
 
         // Report management

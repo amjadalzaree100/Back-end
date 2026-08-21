@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Project;
 use App\Models\Reminder;
 use App\Models\User;
 use App\Support\DateRange;
@@ -84,22 +85,46 @@ class AdminUserController extends Controller
     public function toggleStatus(Request $request, int $userId)
     {
         $user = User::findOrFail($userId);
-        $newStatus = !$user->is_active;
+        $isActivating = !$user->is_active;
 
         DB::beginTransaction();
         try {
-            $user->update(['is_active' => $newStatus]);
+            if ($isActivating) {
+                // Reactivate user
+                $user->reactivate();
+                
+                // Unlock all owned projects
+                Project::where('created_by', $user->id)
+                    ->where('owner_suspended', true)
+                    ->update(['owner_suspended' => false]);
 
-            if (!$newStatus) {
+                // Notify project owners (batched) about reactivation
+                $this->notifyOwnersAboutMemberReactivation($user);
+
+                $message = 'User activated successfully.';
+            } else {
+                // Suspend user
+                $user->suspend();
+
+                // Lock all owned projects
+                Project::where('created_by', $user->id)
+                    ->update(['owner_suspended' => true]);
+
+                // Delete reminders
                 $deletedCount = Reminder::where('user_id', $user->id)->delete();
-                Log::info("Deleted {$deletedCount} reminders for deactivated user ID: {$user->id}");
+                Log::info("Deleted {$deletedCount} reminders for suspended user ID: {$user->id}");
+
+                // Notify project owners (batched) about suspension
+                $this->notifyOwnersAboutMemberSuspension($user);
+
+                $message = 'User suspended. All reminders deleted and owned projects locked.';
             }
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => $newStatus ? 'User activated successfully.' : 'User deactivated. All reminders deleted.',
+                'message' => $message,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -108,6 +133,67 @@ class AdminUserController extends Controller
                 'success' => false,
                 'message' => 'An error occurred.',
             ], 500);
+        }
+    }
+
+    /**
+     * Notify project owners (batched) that a member has been suspended.
+     * Each owner gets one notification with the count of affected projects.
+     */
+    private function notifyOwnersAboutMemberSuspension(User $suspendedUser): void
+    {
+        // Get all projects where this user is a member (not as owner)
+        // Group by project owner (created_by)
+        $ownerProjectCounts = \App\Models\ProjectUser::where('user_id', $suspendedUser->id)
+            ->where('role', '!=', 'owner')
+            ->join('projects', 'project_users.project_id', '=', 'projects.id')
+            ->whereNull('projects.deleted_at')
+            ->groupBy('projects.created_by')
+            ->selectRaw('projects.created_by as owner_id, COUNT(*) as project_count')
+            ->pluck('project_count', 'owner_id');
+
+        $notificationService = app(\App\Services\NotificationService::class);
+
+        foreach ($ownerProjectCounts as $ownerId => $projectCount) {
+            $notificationService->send(
+                $ownerId,
+                'Member Suspended',
+                "User {$suspendedUser->name} has been suspended from the platform. They were a member of {$projectCount} project(s) you own.",
+                'warning',
+                null,
+                null,
+                '⚠️'
+            );
+        }
+    }
+
+    /**
+     * Notify project owners (batched) that a member has been reactivated.
+     * Each owner gets one notification with the count of affected projects.
+     */
+    private function notifyOwnersAboutMemberReactivation(User $reactivatedUser): void
+    {
+        // Get all projects where this user is a member (not as owner)
+        $ownerProjectCounts = \App\Models\ProjectUser::where('user_id', $reactivatedUser->id)
+            ->where('role', '!=', 'owner')
+            ->join('projects', 'project_users.project_id', '=', 'projects.id')
+            ->whereNull('projects.deleted_at')
+            ->groupBy('projects.created_by')
+            ->selectRaw('projects.created_by as owner_id, COUNT(*) as project_count')
+            ->pluck('project_count', 'owner_id');
+
+        $notificationService = app(\App\Services\NotificationService::class);
+
+        foreach ($ownerProjectCounts as $ownerId => $projectCount) {
+            $notificationService->send(
+                $ownerId,
+                'Member Reactivated',
+                "User {$reactivatedUser->name} has been reactivated on the platform. They are a member of {$projectCount} project(s) you own.",
+                'success',
+                null,
+                null,
+                '✅'
+            );
         }
     }
     public function destroy($id)

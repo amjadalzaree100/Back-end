@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'is_active',
+        'suspended_at',
         'email_verified_at',
     ];
 
@@ -33,6 +34,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'suspended_at' => 'datetime',
         'is_active' => 'boolean',
     ];
 
@@ -108,6 +110,27 @@ class User extends Authenticatable
     public function isActivated(): bool
     {
         return $this->is_active && $this->hasVerifiedEmail();
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
+    }
+
+    public function suspend(): void
+    {
+        $this->update([
+            'is_active' => false,
+            'suspended_at' => now(),
+        ]);
+    }
+
+    public function reactivate(): void
+    {
+        $this->update([
+            'is_active' => true,
+            'suspended_at' => null,
+        ]);
     }
 
     /**

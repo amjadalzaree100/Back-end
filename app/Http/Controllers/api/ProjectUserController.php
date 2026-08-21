@@ -11,6 +11,7 @@ use App\Http\Resources\ProjectUserResource;
 use App\Models\Chain;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\ProjectMemberCleanupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -149,11 +150,12 @@ class ProjectUserController extends Controller
             ], 500);
         }
     }
-    public function updateRole(UpdateUserRoleRequest $request, Project $project, int $userId): JsonResponse
+    public function updateRole(UpdateUserRoleRequest $request, Project $project, int $userId, ProjectMemberCleanupService $cleanupService): JsonResponse
     {
         $currentUserId = $request->user()->id;
         $currentUserRole = $project->getUserRole($currentUserId);
         $targetUserRole = $project->getUserRole($userId);
+        $newRole = $request->role;
 
         if ($project->created_by !== $currentUserId && !in_array($currentUserRole, ['owner', 'manager'])) {
             return response()->json([
@@ -168,13 +170,12 @@ class ProjectUserController extends Controller
                 'message' => 'User is not a member of this project'
             ], 404);
         }
-        if ($targetUserRole === $request->role) {
+        if ($targetUserRole === $newRole) {
             return response()->json([
                 'success' => false,
                 'message' => 'User already has this role.'
             ], 422);
         }
-
 
         if ($targetUserRole === 'owner') {
             return response()->json([
@@ -190,10 +191,22 @@ class ProjectUserController extends Controller
             ], 403);
         }
 
+        $isDemotingManager = ($targetUserRole === 'manager' && in_array($newRole, ['user', 'observer']));
+        $managedGroupsCount = 0;
+
         try {
             DB::beginTransaction();
 
-            $project->updateUserRole($userId, $request->role);
+            if ($isDemotingManager) {
+                $targetUser = User::find($userId);
+                $managedGroupsCount = $cleanupService->countManagedGroups($targetUser, $project);
+
+                \App\Models\Group::where('project_id', $project->id)
+                    ->where('manager_id', $userId)
+                    ->update(['manager_id' => null]);
+            }
+
+            $project->updateUserRole($userId, $newRole);
 
             DB::commit();
         } catch (\Exception $e) {
@@ -201,7 +214,7 @@ class ProjectUserController extends Controller
             Log::error('Failed to update user role: ' . $e->getMessage(), [
                 'project_id' => $project->id,
                 'user_id' => $userId,
-                'new_role' => $request->role
+                'new_role' => $newRole
             ]);
             return response()->json([
                 'success' => false,
@@ -211,7 +224,32 @@ class ProjectUserController extends Controller
 
         $project->load('users');
         $updatedUser = User::with('profile')->find($userId);
-        $updatedUser->role = $request->role;
+        $updatedUser->role = $newRole;
+
+        if ($isDemotingManager) {
+            ProjectNotificationEvent::dispatch(
+                userIds: [$currentUserId],
+                scenario: 'manager_demoted',
+                project: $project,
+                actor: $request->user(),
+                extra: [
+                    'demoted_user_name' => $updatedUser->name,
+                    'new_role' => $newRole,
+                    'group_count' => $managedGroupsCount,
+                ],
+            );
+
+            ProjectNotificationEvent::dispatch(
+                userIds: [$userId],
+                scenario: 'manager_demoted_self',
+                project: $project,
+                actor: $request->user(),
+                extra: [
+                    'new_role' => $newRole,
+                    'group_count' => $managedGroupsCount,
+                ],
+            );
+        }
 
         return response()->json([
             'success' => true,
@@ -219,7 +257,7 @@ class ProjectUserController extends Controller
             'data' => new ProjectUserResource($updatedUser)
         ]);
     }
-    public function removeUser(Request $request, Project $project, int $userId): JsonResponse
+    public function removeUser(Request $request, Project $project, int $userId, ProjectMemberCleanupService $cleanupService): JsonResponse
     {
         try {
             $currentUserId = $request->user()->id;
@@ -262,7 +300,17 @@ class ProjectUserController extends Controller
                 ], 403);
             }
 
+            $managedGroupsCount = 0;
+
             DB::beginTransaction();
+
+            if ($targetUserRole === 'manager') {
+                $targetUser = User::find($userId);
+                $managedGroupsCount = $cleanupService->cleanupManagerRole($targetUser, $project);
+            } elseif ($targetUserRole === 'user') {
+                $targetUser = User::find($userId);
+                $cleanupService->cleanupUserRole($targetUser, $project);
+            }
 
             $project->removeUser($userId);
 
@@ -274,6 +322,24 @@ class ProjectUserController extends Controller
                 project: $project,
                 actor: $request->user(),
             );
+
+            if ($targetUserRole === 'manager') {
+                ProjectNotificationEvent::dispatch(
+                    userIds: [$project->created_by],
+                    scenario: 'manager_left_with_groups',
+                    project: $project,
+                    actor: User::find($userId),
+                    extra: ['group_count' => $managedGroupsCount],
+                );
+            }
+
+            if (!$cleanupService->hasManagers($project)) {
+                ProjectNotificationEvent::dispatch(
+                    userIds: [$project->created_by],
+                    scenario: 'project_no_managers',
+                    project: $project,
+                );
+            }
 
             return response()->json([
                 'success' => true,
@@ -294,12 +360,11 @@ class ProjectUserController extends Controller
             ], 500);
         }
     }
-    public function leaveProject(Request $request, Project $project): JsonResponse
+    public function leaveProject(Request $request, Project $project, ProjectMemberCleanupService $cleanupService): JsonResponse
     {
         try {
             $userId = $request->user()->id;
 
-            // Owner cannot leave
             if ($project->created_by === $userId) {
                 return response()->json([
                     'success' => false,
@@ -307,18 +372,45 @@ class ProjectUserController extends Controller
                 ], 403);
             }
 
+            $userRole = $project->getUserRole($userId);
+            $managedGroupsCount = 0;
+
             DB::beginTransaction();
+
+            if ($userRole === 'manager') {
+                $managedGroupsCount = $cleanupService->cleanupManagerRole($request->user(), $project);
+            } elseif ($userRole === 'user') {
+                $cleanupService->cleanupUserRole($request->user(), $project);
+            }
 
             $project->removeUser($userId);
 
             DB::commit();
 
-            ProjectNotificationEvent::dispatch(
-                userIds: [$project->created_by],
-                scenario: 'user_left',
-                project: $project,
-                actor: $request->user(),
-            );
+            if ($userRole === 'manager') {
+                ProjectNotificationEvent::dispatch(
+                    userIds: [$project->created_by],
+                    scenario: 'manager_left_with_groups',
+                    project: $project,
+                    actor: $request->user(),
+                    extra: ['group_count' => $managedGroupsCount],
+                );
+            } else {
+                ProjectNotificationEvent::dispatch(
+                    userIds: [$project->created_by],
+                    scenario: 'user_left_project',
+                    project: $project,
+                    actor: $request->user(),
+                );
+            }
+
+            if (!$cleanupService->hasManagers($project)) {
+                ProjectNotificationEvent::dispatch(
+                    userIds: [$project->created_by],
+                    scenario: 'project_no_managers',
+                    project: $project,
+                );
+            }
 
             return response()->json([
                 'success' => true,

@@ -65,6 +65,60 @@ class NotifyProjectMembers implements ShouldQueue
                 '💬',
                 "/projects/{$event->project->id}",
             ],
+            'member_suspended' => [
+                'Member Suspended',
+                $event->extra && isset($event->extra['project_count'])
+                    ? "User {$event->actor?->name} has been suspended from the platform. They were a member of {$event->extra['project_count']} project(s) you own."
+                    : "A member has been suspended from the platform.",
+                '⚠️',
+                null,
+            ],
+            'member_reactivated' => [
+                'Member Reactivated',
+                $event->extra && isset($event->extra['project_count'])
+                    ? "User {$event->actor?->name} has been reactivated on the platform. They are a member of {$event->extra['project_count']} project(s) you own."
+                    : "A member has been reactivated on the platform.",
+                '✅',
+                null,
+            ],
+            'manager_left_with_groups' => [
+                'Manager Left Project',
+                $event->extra && isset($event->extra['group_count'])
+                    ? "{$event->actor?->name} has left project: {$event->project->name}. They were managing {$event->extra['group_count']} group(s)."
+                    : "{$event->actor?->name} has left project: {$event->project->name}.",
+                '🚪',
+                "/projects/{$event->project->id}",
+            ],
+            'user_left_project' => [
+                'Member Left Project',
+                $event->actor
+                    ? "{$event->actor->name} has left project: {$event->project->name}"
+                    : "A member has left project: {$event->project->name}",
+                '🚪',
+                "/projects/{$event->project->id}",
+            ],
+            'project_no_managers' => [
+                'Project Has No Managers',
+                "Your project \"{$event->project->name}\" now has no managers.",
+                '⚠️',
+                "/projects/{$event->project->id}",
+            ],
+            'manager_demoted' => [
+                'Manager Demoted',
+                $event->extra && isset($event->extra['demoted_user_name']) && isset($event->extra['new_role']) && isset($event->extra['group_count'])
+                    ? "You demoted {$event->extra['demoted_user_name']} from manager to {$event->extra['new_role']}. They were managing {$event->extra['group_count']} group(s), which are now without a manager."
+                    : "A manager has been demoted in project: {$event->project->name}",
+                '🔄',
+                "/projects/{$event->project->id}",
+            ],
+            'manager_demoted_self' => [
+                'Role Demoted',
+                $event->extra && isset($event->extra['new_role']) && isset($event->extra['group_count'])
+                    ? "You have been demoted from manager to {$event->extra['new_role']} in \"{$event->project->name}\". You were managing {$event->extra['group_count']} group(s), which are now without a manager."
+                    : "You have been demoted in project: {$event->project->name}",
+                '🔄',
+                "/projects/{$event->project->id}",
+            ],
             default => [
                 'Project Update',
                 "Update on project: {$event->project->name}",
