@@ -4,11 +4,14 @@ namespace App\Models;
 
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TaskAssignmentHistory extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'task_id', 'user_id', 'assigned_by', 'action', 'assigned_at'
     ];

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -23,17 +24,17 @@ class ProjectFactory extends Factory
     {
         static $i = 0;
         $i++;
-        $slug = 'Project-' . $i . '-' . Str::lower(Str::random(6));
+        $slug = 'Project-'.$i.'-'.Str::lower(Str::random(6));
 
         return [
             'name' => Str::title(str_replace('-', ' ', $slug)),
-            'description' => 'Project ' . $i . ' description.',
+            'description' => 'Project '.$i.' description.',
             'image' => null,
             'status' => 'active',
             'visibility' => 'public',
             'start_date' => null,
             'end_date' => null,
-            'created_by' => null,
+            'created_by' => User::factory(),
             'allow_join_requests' => true,
             'allow_commit' => true,
             'allow_reactions' => true,
@@ -42,26 +43,26 @@ class ProjectFactory extends Factory
 
     public function active(): static
     {
-        return $this->state(fn() => ['status' => 'active']);
+        return $this->state(fn () => ['status' => 'active']);
     }
 
     public function paused(): static
     {
-        return $this->state(fn() => ['status' => 'paused']);
+        return $this->state(fn () => ['status' => 'paused']);
     }
 
     public function completed(): static
     {
-        return $this->state(fn() => ['status' => 'completed']);
+        return $this->state(fn () => ['status' => 'completed']);
     }
 
     public function public(): static
     {
-        return $this->state(fn() => ['visibility' => 'public']);
+        return $this->state(fn () => ['visibility' => 'public']);
     }
 
     public function private(): static
     {
-        return $this->state(fn() => ['visibility' => 'private']);
+        return $this->state(fn () => ['visibility' => 'private']);
     }
 }

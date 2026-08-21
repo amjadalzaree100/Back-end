@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
 
 class Request extends Model
 {
+    use HasFactory;
+
     protected $table = 'requests';
 
     protected $fillable = [

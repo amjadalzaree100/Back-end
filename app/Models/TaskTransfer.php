@@ -5,11 +5,14 @@ namespace App\Models;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TaskTransfer extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'task_id',
         'from_project_id',
