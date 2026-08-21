@@ -110,7 +110,12 @@
                                 <input type="checkbox" name="user_ids[]" value="{{ $user->id }}" class="user-checkbox">
                             </td>
                             <td>{{ $user->id }}</td>
-                            <td>{{ $user->name }}</td>
+                            <td>
+                                {{ $user->name }}
+                                @if ($user->deleted)
+                                    <span class="badge badge-secondary">Deleted</span>
+                                @endif
+                            </td>
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->username }}</td>
                             <td>

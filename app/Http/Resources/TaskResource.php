@@ -58,6 +58,7 @@ class TaskResource extends JsonResource
                     'id' => $this->assignee->id,
                     'name' => $this->assignee->name,
                     'avatar' => $this->assignee->profile?->avatar,
+                    'deleted' => $this->assignee->deleted,
                 ];
             }),
             'assigned_group_id' => $this->assigned_group_id,
@@ -76,6 +77,7 @@ class TaskResource extends JsonResource
                     'id' => $this->creator->id,
                     'name' => $this->creator->name,
                     'avatar' => $this->creator->profile?->avatar,
+                    'deleted' => $this->creator->deleted,
                 ];
             }),
 

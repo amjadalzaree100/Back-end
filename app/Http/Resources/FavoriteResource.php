@@ -19,6 +19,7 @@ class FavoriteResource extends JsonResource
                 'avatar' => $this->favoriteUser->profile?->avatar,
                 'job_title' => $this->favoriteUser->profile?->job_title,
                 'is_public' => $this->favoriteUser->profile?->is_public,
+                'deleted' => $this->favoriteUser->deleted,
             ],
             'created_at' => $this->created_at?->toISOString(),
         ];

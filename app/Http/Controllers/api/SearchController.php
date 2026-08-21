@@ -152,6 +152,18 @@ class SearchController extends Controller
 
         $this->applyProjectFilters($projectsQuery, $request);
 
+        // Hide private projects that the authenticated user is not a member of.
+        // A project is visible if it's public, or the user is the owner, or the
+        // user is in the project_users pivot.
+        $userId = auth()->id();
+        $projectsQuery->where(function ($q) use ($userId) {
+            $q->where('visibility', 'public')
+                ->orWhere('created_by', $userId)
+                ->orWhereHas('users', function ($q2) use ($userId) {
+                    $q2->where('users.id', $userId);
+                });
+        });
+
         $projectsQuery->where(function ($q) use ($keywords, $query) {
             foreach ($keywords as $keyword) {
                 $q->orWhere('name', 'LIKE', "%{$keyword}%");

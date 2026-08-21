@@ -28,7 +28,12 @@
                         </tr>
                         <tr>
                             <th>Name</th>
-                            <td>{{ $user->name }}</td>
+                            <td>
+                                {{ $user->name }}
+                                @if ($user->deleted)
+                                    <span class="badge badge-secondary">Deleted</span>
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <th>Username</th>
@@ -45,6 +50,17 @@
                                     <span class="badge badge-success">Active</span>
                                 @else
                                     <span class="badge badge-danger">Inactive</span>
+                                @endif
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Deletion Status</th>
+                            <td>
+                                @if ($user->deleted)
+                                    <span class="badge badge-secondary">Deleted</span>
+                                    <small class="text-muted">({{ $user->deleted_at?->format('Y-m-d H:i') }})</small>
+                                @else
+                                    <span class="badge badge-success">Not deleted</span>
                                 @endif
                             </td>
                         </tr>

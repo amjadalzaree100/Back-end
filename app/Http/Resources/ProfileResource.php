@@ -22,6 +22,7 @@ class ProfileResource extends JsonResource
                 'user' => [
                     'id' => $this->user->id,
                     'name' => $this->user->name,
+                    'deleted' => $this->user->deleted,
                 ],
                 'is_active' => false,
                 'account_status' => 'deactivated',
@@ -39,6 +40,7 @@ class ProfileResource extends JsonResource
                     'id' => $this->user->id,
                     'name' => $this->user->name,
                     'username' => $this->user->username,
+                    'deleted' => $this->user->deleted,
                 ],
                 'blocked' => true,
                 'message' => 'You have been blocked by this user.',
@@ -55,6 +57,7 @@ class ProfileResource extends JsonResource
                     'id' => $this->user->id,
                     'name' => $this->user->name,
                     'username' => $this->user->username,
+                    'deleted' => $this->user->deleted,
                 ],
                 'is_public' => $this->is_public,
                 'allow_messages' => $this->allow_messages,
@@ -72,6 +75,7 @@ class ProfileResource extends JsonResource
                     'id' => $this->user->id,
                     'name' => $this->user->name,
                     'username' => $this->user->username,
+                    'deleted' => $this->user->deleted,
                 ];
             }),
 

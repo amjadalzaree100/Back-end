@@ -162,6 +162,11 @@ class ProjectController extends Controller
                 'allow_reactions' => $request->input('allow_reactions', true),
             ];
 
+            // Private projects cannot accept join requests.
+            if (($data['visibility'] ?? null) === 'private') {
+                $data['allow_join_requests'] = false;
+            }
+
             $project = Project::create($data);
 
             $project->users()->attach($request->user()->id, ['role' => 'owner']);
@@ -230,6 +235,12 @@ class ProjectController extends Controller
             'allow_commit',
             'allow_reactions',
         ]);
+
+        // If visibility is being changed to private, private projects cannot
+        // accept join requests.
+        if (($data['visibility'] ?? null) === 'private') {
+            $data['allow_join_requests'] = false;
+        }
 
         // 3. Handle status change separately
         $oldStatus = $project->status;
@@ -465,8 +476,16 @@ class ProjectController extends Controller
             $project->projectComments()->forceDelete();
             $project->projectReports()->forceDelete();
 
-            // 7. Finally, force delete the project itself
+            // 7. Capture the chain this project was attached to (before deletion)
+            $chain = $project->activeChain();
+
+            // 8. Finally, force delete the project itself
             $project->forceDelete();
+
+            // 9. Clean up orphaned chains (no projects left, including trashed)
+            if ($chain && $chain->projects()->withTrashed()->count() === 0) {
+                $chain->delete();
+            }
 
             DB::commit();
 
@@ -625,7 +644,11 @@ class ProjectController extends Controller
 
         try {
             DB::beginTransaction();
-            $project->update(['visibility' => $request->visibility]);
+            $project->update([
+                'visibility' => $request->visibility,
+                // Private projects cannot accept join requests.
+                'allow_join_requests' => $request->visibility === 'private' ? false : $project->allow_join_requests,
+            ]);
             DB::commit();
 
             return response()->json([

@@ -21,11 +21,13 @@ class GroupResource extends JsonResource
                     'id' => $this->manager->id,
                     'name' => $this->manager->name,
                     'avatar' => $this->manager->profile?->avatar,
+                    'deleted' => $this->manager->deleted,
                 ] : null;
             }),
             'creator' => [
                 'id' => $this->creator?->id,
                 'name' => $this->creator?->name,
+                'deleted' => $this->creator?->deleted,
             ],
             'project' => $this->whenLoaded('project', function () {
                 return [

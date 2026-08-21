@@ -44,6 +44,7 @@ Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 Route::middleware(['auth:sanctum'])->group(function () {
     // Route::post('/logout', [LogoutController::class, 'logout']);
     Route::get('/me', [LoginController::class, 'me']);
+    Route::delete('/me', [LoginController::class, 'destroy']);
     Route::get('/email-status', [EmailVerificationController::class, 'checkStatus']);
 });
 
@@ -380,10 +381,11 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'
         Route::post('/{task}/restore', [TaskController::class, 'restoreTask']);
         Route::delete('/{task}/force-delete', [TaskController::class, 'forceDeleteTask']);
         Route::delete('/empty-trash', [TaskController::class, 'emptyTrash']);
+
+        Route::post('/{parentTask}/subtasks', [TaskController::class, 'storeSubTask']);
     });
 
-    // Group tasks & subtasks (separate from tasks prefix to avoid variable duplication)
-    Route::post('/projects/{project}/groups/{group}/tasks/{parentTask}/subtasks', [TaskController::class, 'storeSubTask']);
+    // Group tasks (separate from tasks prefix to avoid variable duplication)
     Route::post('/projects/{project}/group-tasks', [TaskController::class, 'storeGroupTask']);
 });
 
