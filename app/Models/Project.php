@@ -209,6 +209,14 @@ class Project extends Model
 
         $this->users()->detach($userId);
 
+        // The user leaves every group inside this project as well.
+        $this->groups()->get()->each(function (Group $group) use ($userId) {
+            $group->members()->detach($userId);
+            if ($group->manager_id === $userId) {
+                $group->update(['manager_id' => null]);
+            }
+        });
+
         return true;
     }
 

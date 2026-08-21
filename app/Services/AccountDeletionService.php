@@ -68,13 +68,9 @@ class AccountDeletionService
             }
             // observer: just leave, no extra cleanup
 
-            // Remove from project_users pivot
-            $project->users()->detach($user->id);
-
-            // Also remove from any group memberships in this project
-            $project->groups()->each(function ($group) use ($user) {
-                $group->members()->where('user_id', $user->id)->delete();
-            });
+            // Remove from project_users pivot (also removes user from any
+            // groups inside this project)
+            $project->removeUser($user->id);
 
             // Decrement projects_count on profile
             $user->profile()?->decrement('projects_count');
