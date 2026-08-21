@@ -7,8 +7,8 @@ use App\Http\Requests\api\Auth\ResendVerificationRequest;
 use App\Http\Requests\api\Auth\VerifyEmailRequest;
 use App\Http\Traits\ApiResponseTrait;
 use App\Mail\WelcomeMail;
-use App\Models\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use App\Services\VerificationCodeService;
 use Illuminate\Support\Facades\Mail;
 

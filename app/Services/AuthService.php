@@ -36,12 +36,6 @@ class AuthService
             ]);
         }
 
-        if (!$user->is_active) {
-            throw ValidationException::withMessages([
-                'login' => ['Your account is deactivated. Please contact support.']
-            ]);
-        }
-
         return $user;
     }
 }

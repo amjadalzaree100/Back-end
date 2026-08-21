@@ -17,7 +17,7 @@ class InviteUserRequest extends FormRequest
     {
         return [
             'project_id' => 'required|exists:projects,id',
-            'role' => 'nullable|in:manage,user,observer', // فقط user أو observer
+            'role' => 'nullable|in:manager,user,observer', // فقط user أو observer
             'message' => 'nullable|string|max:500',
         ];
     }
