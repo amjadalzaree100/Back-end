@@ -283,7 +283,6 @@ class TaskController extends Controller
                 'status',
                 'creator',
                 'assignee',
-                'dependencies',
                 'comments.user',
                 'subTasks.status',
                 'subTasks.assignee',
@@ -543,6 +542,77 @@ class TaskController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update task status. Please try again later.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark a task as complete (or incomplete) based on `completed_at`.
+     * Only the project owner, manager, or the task assignee can do this.
+     */
+    public function complete(Request $request, Project $project, Task $task): JsonResponse
+    {
+        if ($task->is_archived) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot update an archived task.',
+            ], 403);
+        }
+
+        if ($task->project_id !== $project->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Task does not belong to this project',
+            ], 404);
+        }
+
+        $userId = $request->user()->id;
+        $userRole = $project->getUserRole($userId);
+        $isOwner = $project->isOwner($userId);
+        $isManager = $userRole === 'manager';
+        $isTaskAssignee = $task->assigned_to === $userId;
+
+        if (!($isOwner || $isManager || $isTaskAssignee)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to complete this task.',
+            ], 403);
+        }
+
+        $complete = (bool) $request->input('completed', true);
+
+        try {
+            DB::beginTransaction();
+
+            $wasCompleted = $task->isCompleted();
+
+            $task->update([
+                'completed_at' => $complete ? now() : null,
+            ]);
+
+            DB::commit();
+
+            if ($complete && !$wasCompleted) {
+                event(new \App\Events\TaskCompleted($task));
+            }
+
+            $task->load(['status', 'creator', 'assignee', 'assignedGroup']);
+
+            return response()->json([
+                'success' => true,
+                'message' => $complete ? 'Task marked as completed.' : 'Task marked as incomplete.',
+                'data' => new TaskResource($task),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Task completion update failed: ' . $e->getMessage(), [
+                'task_id' => $task->id,
+                'user_id' => $userId,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update task completion. Please try again later.',
             ], 500);
         }
     }
@@ -1077,7 +1147,7 @@ class TaskController extends Controller
         try {
             DB::beginTransaction();
 
-            // Force delete the task (model booted will handle assignments, comments, subtasks, dependencies)
+            // Force delete the task (model booted will handle assignments, comments, subtasks)
             $task->forceDelete();
 
             DB::commit();

@@ -23,26 +23,5 @@ class NotifyTaskCompleted
             scenario: 'completed',
             task: $task,
         );
-
-        // Check if this completed task unblocks dependent tasks
-        foreach ($task->dependents as $dependent) {
-            $dependentUserIds = [];
-            if ($dependent->assigned_to) {
-                $dependentUserIds[] = $dependent->assigned_to;
-            }
-            $dependentUserIds = array_merge(
-                $dependentUserIds,
-                $dependent->assigned_to ? [$dependent->assigned_to] : [],
-            );
-            $dependentUserIds = array_unique($dependentUserIds);
-
-            if (!empty($dependentUserIds)) {
-                TaskNotificationEvent::dispatch(
-                    userIds: $dependentUserIds,
-                    scenario: 'dependency_resolved',
-                    task: $dependent,
-                );
-            }
-        }
     }
 }

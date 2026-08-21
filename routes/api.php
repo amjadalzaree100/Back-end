@@ -26,7 +26,6 @@ use App\Http\Controllers\api\RequestController;
 use App\Http\Controllers\api\SearchController;
 use App\Http\Controllers\api\TaskAssignmentController;
 use App\Http\Controllers\api\TaskController;
-use App\Http\Controllers\api\TaskDependencyController;
 use App\Http\Controllers\api\TaskStatusController;
 use Illuminate\Support\Facades\Route;
 
@@ -281,13 +280,6 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     Route::get('/my-assigned-tasks', [TaskAssignmentController::class, 'myAssignedTasks']);
 });
 
-// TASK DEPENDENCIES ROUTES - Read only (always accessible)
-Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
-    Route::prefix('projects/{project}/tasks/{task}/dependencies')->group(function () {
-        Route::get('/', [TaskDependencyController::class, 'index']);
-    });
-});
-
 
 // NOTIFICATIONS ROUTES (always accessible)
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
@@ -387,6 +379,7 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'
         Route::post('/reorder', [TaskController::class, 'reorder']);
         Route::put('/{task}', [TaskController::class, 'update']);
         Route::put('/{task}/status', [TaskController::class, 'updateStatus']);
+        Route::post('/{task}/complete', [TaskController::class, 'complete']);
         Route::delete('/{task}', [TaskController::class, 'destroy']);
 
         Route::post('/{task}/restore', [TaskController::class, 'restoreTask']);
@@ -405,14 +398,5 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'
     Route::prefix('projects/{project}/tasks/{task}/assignments')->group(function () {
         Route::post('/', [TaskAssignmentController::class, 'assign']);
         Route::delete('/{userId}', [TaskAssignmentController::class, 'unassign']);
-    });
-});
-
-// TASK DEPENDENCIES ROUTES - Write operations
-Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'])->group(function () {
-    Route::prefix('projects/{project}/tasks/{task}/dependencies')->group(function () {
-        Route::post('/', [TaskDependencyController::class, 'addDependency']);
-        Route::delete('/{dependsOnTaskId}', [TaskDependencyController::class, 'removeDependency']);
-        Route::put('/{dependsOnTaskId}/type', [TaskDependencyController::class, 'updateDependencyType']);
     });
 });

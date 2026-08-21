@@ -85,9 +85,6 @@ class TaskResource extends JsonResource
 
             'is_completed' => $this->isCompleted(),
             'is_started' => $this->isStarted(),
-            'is_blocked' => $this->is_blocked,
-            'can_be_started' => $this->can_be_started,
-            'can_be_completed' => $this->can_be_completed,
 
             'started_at' => $this->started_at?->toISOString(),
             'started_at_formatted' => $this->started_at_formatted,
@@ -95,8 +92,6 @@ class TaskResource extends JsonResource
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
 
-            'dependencies_count' => $this->dependencies_count,
-            'dependents_count' => $this->dependents_count,
             'comments_count' => $this->whenCounted('comments', $this->comments_count ?? 0),
             'is_archived' => $this->is_archived,
 

@@ -44,10 +44,6 @@ class TaskTransferService
 
             $newTask->save();
 
-            // Clean parent task relationships
-            $newTask->dependencies()->detach();
-            $newTask->dependents()->detach();
-
             // 2. Clone all subtasks (transferred subtasks are unassigned)
             $subtaskMapping = [];
 
@@ -64,10 +60,6 @@ class TaskTransferService
                 $newSubTask->status_id = null;
 
                 $newSubTask->save();
-
-                // Clean subtask relationships
-                $newSubTask->dependencies()->detach();
-                $newSubTask->dependents()->detach();
 
                 $subtaskMapping[$subTask->id] = $newSubTask;
             }

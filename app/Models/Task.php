@@ -65,7 +65,6 @@ class Task extends Model
             if ($task->isForceDeleting()) {
                 $task->comments()->forceDelete();
                 $task->subTasks()->forceDelete();
-                $task->dependencies()->detach();
             } else {
                 $task->comments()->delete();
                 $task->subTasks()->delete();
@@ -152,28 +151,6 @@ class Task extends Model
         return $this->hasMany(Comment::class);
     }
 
-    public function dependencies(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Task::class,
-            'task_dependencies',
-            'task_id',
-            'depends_on_task_id'
-        )->withPivot('type')
-            ->withTimestamps();
-    }
-
-    public function dependents(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Task::class,
-            'task_dependencies',
-            'depends_on_task_id',
-            'task_id'
-        )->withPivot('type')
-            ->withTimestamps();
-    }
-
     public function parentTask(): BelongsTo
     {
         return $this->belongsTo(Task::class, 'parent_task_id');
@@ -238,96 +215,10 @@ class Task extends Model
 
     public function complete(): void
     {
-        if (!$this->isCompleted() && $this->canBeCompleted()) {
+        if (!$this->isCompleted()) {
             $this->update(['completed_at' => now()]);
             event(new TaskCompleted($this));
         }
-    }
-
-    public function isBlocked(): bool
-    {
-        foreach ($this->dependencies as $dependency) {
-            $type = $dependency->pivot->type;
-
-            if ($type === 'FS' && !$dependency->isCompleted()) {
-                return true;
-            }
-
-            if ($type === 'SS' && !$dependency->isStarted()) {
-                return true;
-            }
-
-            if ($type === 'FF' && !$dependency->isCompleted()) {
-                return true;
-            }
-
-            if ($type === 'SF' && !$dependency->isStarted()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public function canBeStarted(): bool
-    {
-        foreach ($this->dependencies as $dependency) {
-            $type = $dependency->pivot->type;
-
-            if ($type === 'FS' && !$dependency->isCompleted()) {
-                return false;
-            }
-
-            if ($type === 'SS' && !$dependency->isStarted()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public function canBeCompleted(): bool
-    {
-        foreach ($this->dependencies as $dependency) {
-            $type = $dependency->pivot->type;
-
-            if ($type === 'FS' && !$dependency->isCompleted()) {
-                return false;
-            }
-
-            // if ($type === 'SS' && !$dependency->isStarted()) {
-            //     return false;
-            // }
-
-            if ($type === 'FF' && !$dependency->isCompleted()) {
-                return false;
-            }
-
-            if ($type === 'SF' && !$dependency->isStarted()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public function getTypeLabel(string $type): string
-    {
-        return match ($type) {
-            'FS' => 'Finish to Start',
-            'SS' => 'Start to Start',
-            'FF' => 'Finish to Finish',
-            'SF' => 'Start to Finish',
-            default => 'Unknown',
-        };
-    }
-
-    public function getTypeDescription(string $type): string
-    {
-        return match ($type) {
-            'FS' => 'This task cannot be started until the dependency is completed',
-            'SS' => 'This task cannot be started until the dependency is started',
-            'FF' => 'This task cannot be completed until the dependency is completed',
-            'SF' => 'This task cannot be completed until the dependency is started',
-            default => '',
-        };
     }
 
     public function getPriorityLabelAttribute(): string
@@ -372,34 +263,9 @@ class Task extends Model
         return $this->isStarted();
     }
 
-    public function getIsBlockedAttribute(): bool
-    {
-        return $this->isBlocked();
-    }
-
-    public function getCanBeStartedAttribute(): bool
-    {
-        return $this->canBeStarted();
-    }
-
-    public function getCanBeCompletedAttribute(): bool
-    {
-        return $this->canBeCompleted();
-    }
-
     public function getAssignmentsCountAttribute(): int
     {
         return $this->assigned_to ? 1 : 0;
-    }
-
-    public function getDependenciesCountAttribute(): int
-    {
-        return $this->dependencies()->count();
-    }
-
-    public function getDependentsCountAttribute(): int
-    {
-        return $this->dependents()->count();
     }
 
     public function scopeByProject(Builder $query, int $projectId)

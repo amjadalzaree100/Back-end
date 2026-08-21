@@ -450,8 +450,6 @@ class ProjectController extends Controller
             // 2. Delete tasks and related data
             foreach ($project->tasks()->withTrashed()->get() as $task) {
                 $task->comments()->forceDelete();
-                $task->dependencies()->detach();
-                $task->dependents()->detach();
                 $task->forceDelete();
             }
 

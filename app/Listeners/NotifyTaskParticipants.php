@@ -35,18 +35,6 @@ class NotifyTaskParticipants implements ShouldQueue
                 '💬',
                 "/tasks/{$event->task->id}",
             ],
-            'dependency_added' => [
-                'Dependency Added',
-                "A new dependency has been added to task: {$event->task->title}",
-                '🔗',
-                "/tasks/{$event->task->id}",
-            ],
-            'dependency_resolved' => [
-                'Dependency Resolved',
-                "A task blocking \"{$event->task->title}\" has been completed",
-                '🔓',
-                "/tasks/{$event->task->id}",
-            ],
             default => [
                 'Task Update',
                 "Update on task: {$event->task->title}",
