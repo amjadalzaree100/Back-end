@@ -37,8 +37,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/register",
-                            "host": ["{{baseURL}}"],
-                            "path": ["register"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "register"
+                            ]
                         }
                     },
                     "response": []
@@ -66,8 +70,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/login",
-                            "host": ["{{baseURL}}"],
-                            "path": ["login"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "login"
+                            ]
                         }
                     },
                     "response": []
@@ -95,8 +103,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/verify-email",
-                            "host": ["{{baseURL}}"],
-                            "path": ["verify-email"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "verify-email"
+                            ]
                         }
                     },
                     "response": []
@@ -124,8 +136,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/resend-verification",
-                            "host": ["{{baseURL}}"],
-                            "path": ["resend-verification"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "resend-verification"
+                            ]
                         }
                     },
                     "response": []
@@ -153,8 +169,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/forgot-password",
-                            "host": ["{{baseURL}}"],
-                            "path": ["forgot-password"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "forgot-password"
+                            ]
                         }
                     },
                     "response": []
@@ -182,8 +202,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/reset-password",
-                            "host": ["{{baseURL}}"],
-                            "path": ["reset-password"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "reset-password"
+                            ]
                         }
                     },
                     "response": []
@@ -202,8 +226,12 @@
                         "description": "POST logout the current device — no body.",
                         "url": {
                             "raw": "{{baseURL}}/logout",
-                            "host": ["{{baseURL}}"],
-                            "path": ["logout"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "logout"
+                            ]
                         }
                     },
                     "response": []
@@ -222,8 +250,12 @@
                         "description": "GET the current authenticated user — no body.",
                         "url": {
                             "raw": "{{baseURL}}/me",
-                            "host": ["{{baseURL}}"],
-                            "path": ["me"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "me"
+                            ]
                         }
                     },
                     "response": []
@@ -251,8 +283,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/me",
-                            "host": ["{{baseURL}}"],
-                            "path": ["me"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "me"
+                            ]
                         }
                     },
                     "response": []
@@ -271,8 +307,12 @@
                         "description": "GET the email verification status of the current user — no body.",
                         "url": {
                             "raw": "{{baseURL}}/email-status",
-                            "host": ["{{baseURL}}"],
-                            "path": ["email-status"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "email-status"
+                            ]
                         }
                     },
                     "response": []
@@ -291,8 +331,12 @@
                         "description": "POST logout from all devices — no body.",
                         "url": {
                             "raw": "{{baseURL}}/logout-all",
-                            "host": ["{{baseURL}}"],
-                            "path": ["logout-all"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "logout-all"
+                            ]
                         }
                     },
                     "response": []
@@ -311,8 +355,12 @@
                         "description": "GET list of the current user's authenticated devices — no body.",
                         "url": {
                             "raw": "{{baseURL}}/devices",
-                            "host": ["{{baseURL}}"],
-                            "path": ["devices"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "devices"
+                            ]
                         }
                     },
                     "response": []
@@ -331,8 +379,13 @@
                         "description": "DELETE a device identified by {tokenId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/devices/{tokenId}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["devices", "{tokenId}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "devices",
+                                "{tokenId}"
+                            ]
                         }
                     },
                     "response": []
@@ -351,8 +404,12 @@
                         "description": "POST logout all other devices (keeping the current one) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/logout-other-devices",
-                            "host": ["{{baseURL}}"],
-                            "path": ["logout-other-devices"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "logout-other-devices"
+                            ]
                         }
                     },
                     "response": []
@@ -376,8 +433,12 @@
                         "description": "GET the current user's own profile — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-profile",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-profile"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-profile"
+                            ]
                         }
                     },
                     "response": []
@@ -396,8 +457,13 @@
                         "description": "GET a profile identified by {profile} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "{profile}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "{profile}"
+                            ]
                         }
                     },
                     "response": []
@@ -425,8 +491,13 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "{profile}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "{profile}"
+                            ]
                         }
                     },
                     "response": []
@@ -445,8 +516,13 @@
                         "description": "PATCH update profile identified by {profile}. All fields optional: phone (string, max 20, unique), bio (string, max 1000), job_title (string, max 255), skills (optional, array of {name (string, max 100, required with skills), rating (optional, integer, 1-10)}), avatar (url, max 255), location (string, max 255), alternative_email (email, max 255), social urls (twitter_url, facebook_url, instagram_url, youtube_url, github_url, portfolio_url, linkedin_url — url, max 255; cv_url — max 255, no url rule), language [ar,en], theme [light,dark], is_public (boolean), allow_messages (boolean), allow_invitation_requests (boolean). NO name field.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "{profile}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "{profile}"
+                            ]
                         },
                         "body": {
                             "mode": "raw",
@@ -474,8 +550,14 @@
                         "description": "GET the skills of profile {profile} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/skills",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "{profile}", "skills"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "{profile}",
+                                "skills"
+                            ]
                         }
                     },
                     "response": []
@@ -503,8 +585,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/skills",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "{profile}", "skills"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "{profile}",
+                                "skills"
+                            ]
                         }
                     },
                     "response": []
@@ -532,7 +620,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/skills/{skill}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "profiles",
                                 "{profile}",
@@ -557,7 +647,9 @@
                         "description": "DELETE a skill identified by {skill} from profile {profile} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/skills/{skill}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "profiles",
                                 "{profile}",
@@ -582,8 +674,14 @@
                         "description": "POST block a user identified by {userId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/block/{userId}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "block", "{userId}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "block",
+                                "{userId}"
+                            ]
                         }
                     },
                     "response": []
@@ -602,8 +700,14 @@
                         "description": "DELETE unblock a user identified by {userId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/unblock/{userId}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "unblock", "{userId}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "unblock",
+                                "{userId}"
+                            ]
                         }
                     },
                     "response": []
@@ -622,8 +726,13 @@
                         "description": "GET the list of users blocked by the current user — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/blocked-users",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "blocked-users"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "blocked-users"
+                            ]
                         }
                     },
                     "response": []
@@ -642,8 +751,14 @@
                         "description": "GET whether the current user can message the owner of profile {profile} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/can-message",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "{profile}", "can-message"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "{profile}",
+                                "can-message"
+                            ]
                         }
                     },
                     "response": []
@@ -662,8 +777,14 @@
                         "description": "GET whether the current user can invite the owner of profile {profile} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/can-invite",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "{profile}", "can-invite"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "{profile}",
+                                "can-invite"
+                            ]
                         }
                     },
                     "response": []
@@ -691,8 +812,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/profiles/{profile}/invite",
-                            "host": ["{{baseURL}}"],
-                            "path": ["profiles", "{profile}", "invite"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "profiles",
+                                "{profile}",
+                                "invite"
+                            ]
                         }
                     },
                     "response": []
@@ -716,8 +843,12 @@
                         "description": "GET my pending tasks — no body. Optional query params: sort_by [due_date,created_at,priority,title], sort_direction [asc,desc].",
                         "url": {
                             "raw": "{{baseURL}}/my-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-tasks"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-tasks"
+                            ]
                         }
                     },
                     "response": []
@@ -741,8 +872,12 @@
                         "description": "GET list of reminders — no body.",
                         "url": {
                             "raw": "{{baseURL}}/reminders",
-                            "host": ["{{baseURL}}"],
-                            "path": ["reminders"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "reminders"
+                            ]
                         }
                     },
                     "response": []
@@ -770,8 +905,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/reminders",
-                            "host": ["{{baseURL}}"],
-                            "path": ["reminders"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "reminders"
+                            ]
                         }
                     },
                     "response": []
@@ -799,8 +938,13 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/reminders/{reminder}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["reminders", "{reminder}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "reminders",
+                                "{reminder}"
+                            ]
                         }
                     },
                     "response": []
@@ -819,8 +963,13 @@
                         "description": "DELETE a reminder identified by {reminder} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/reminders/{reminder}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["reminders", "{reminder}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "reminders",
+                                "{reminder}"
+                            ]
                         }
                     },
                     "response": []
@@ -848,8 +997,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/reminders/{reminder}/snooze",
-                            "host": ["{{baseURL}}"],
-                            "path": ["reminders", "{reminder}", "snooze"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "reminders",
+                                "{reminder}",
+                                "snooze"
+                            ]
                         }
                     },
                     "response": []
@@ -868,8 +1023,14 @@
                         "description": "POST dismiss a reminder identified by {reminder} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/reminders/{reminder}/dismiss",
-                            "host": ["{{baseURL}}"],
-                            "path": ["reminders", "{reminder}", "dismiss"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "reminders",
+                                "{reminder}",
+                                "dismiss"
+                            ]
                         }
                     },
                     "response": []
@@ -888,8 +1049,14 @@
                         "description": "GET reminders for a project identified by {project} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/reminders",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "reminders"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "reminders"
+                            ]
                         }
                     },
                     "response": []
@@ -922,7 +1089,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/reactions/toggle",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -947,8 +1116,14 @@
                         "description": "GET project reactions — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/reactions",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "reactions"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "reactions"
+                            ]
                         }
                     },
                     "response": []
@@ -972,8 +1147,12 @@
                         "description": "GET list of my invitations — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-invitations",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-invitations"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-invitations"
+                            ]
                         }
                     },
                     "response": []
@@ -1001,8 +1180,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/invitations/{invitation}/accept",
-                            "host": ["{{baseURL}}"],
-                            "path": ["invitations", "{invitation}", "accept"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "invitations",
+                                "{invitation}",
+                                "accept"
+                            ]
                         }
                     },
                     "response": []
@@ -1030,8 +1215,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/invitations/{invitation}/reject",
-                            "host": ["{{baseURL}}"],
-                            "path": ["invitations", "{invitation}", "reject"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "invitations",
+                                "{invitation}",
+                                "reject"
+                            ]
                         }
                     },
                     "response": []
@@ -1059,8 +1250,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/invitations",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "invitations"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "invitations"
+                            ]
                         }
                     },
                     "response": []
@@ -1093,8 +1290,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/join-requests",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "join-requests"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "join-requests"
+                            ]
                         }
                     },
                     "response": []
@@ -1113,8 +1316,14 @@
                         "description": "GET list of join requests — no body. Optional query params: per_page.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/join-requests",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "join-requests"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "join-requests"
+                            ]
                         }
                     },
                     "response": []
@@ -1133,7 +1342,9 @@
                         "description": "POST approve join request. Body: role (OPTIONAL) [user,manager,observer]. The status is determined by the endpoint; do NOT send a status field.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/join-requests/{joinRequest}/approve",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -1168,7 +1379,9 @@
                         "description": "POST reject join request. The status is determined by the endpoint; no body is required.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/join-requests/{joinRequest}/reject",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -1208,8 +1421,14 @@
                         "description": "GET project comments — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/comments",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "comments"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "comments"
+                            ]
                         }
                     },
                     "response": []
@@ -1237,8 +1456,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/comments",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "comments"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "comments"
+                            ]
                         }
                     },
                     "response": []
@@ -1257,7 +1482,9 @@
                         "description": "GET single project comment — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/comments/{comment}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -1291,7 +1518,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/comments/{comment}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -1316,7 +1545,9 @@
                         "description": "DELETE project comment — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/comments/{comment}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -1355,8 +1586,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/project-reports",
-                            "host": ["{{baseURL}}"],
-                            "path": ["project-reports"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "project-reports"
+                            ]
                         }
                     },
                     "response": []
@@ -1380,8 +1615,12 @@
                         "description": "GET my note — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-note",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-note"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-note"
+                            ]
                         }
                     },
                     "response": []
@@ -1409,8 +1648,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/note",
-                            "host": ["{{baseURL}}"],
-                            "path": ["note"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "note"
+                            ]
                         }
                     },
                     "response": []
@@ -1429,8 +1672,12 @@
                         "description": "DELETE (clear) my note — no body.",
                         "url": {
                             "raw": "{{baseURL}}/note",
-                            "host": ["{{baseURL}}"],
-                            "path": ["note"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "note"
+                            ]
                         }
                     },
                     "response": []
@@ -1454,8 +1701,12 @@
                         "description": "GET list of my projects — no body. Optional query params: search, role [owner,manager,user,observer], status [active,paused,completed], visibility [private,public], sort_by [created_at,name,updated_at,status], sort_direction [asc,desc].",
                         "url": {
                             "raw": "{{baseURL}}/my-projects",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-projects"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-projects"
+                            ]
                         }
                     },
                     "response": []
@@ -1474,8 +1725,12 @@
                         "description": "GET my active owned projects — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-active-projects",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-active-projects"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-active-projects"
+                            ]
                         }
                     },
                     "response": []
@@ -1503,8 +1758,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects"
+                            ]
                         }
                     },
                     "response": []
@@ -1523,8 +1782,13 @@
                         "description": "GET single project — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}"
+                            ]
                         }
                     },
                     "response": []
@@ -1552,8 +1816,13 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}"
+                            ]
                         }
                     },
                     "response": []
@@ -1572,8 +1841,13 @@
                         "description": "DELETE project (soft delete / move to trash) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}"
+                            ]
                         }
                     },
                     "response": []
@@ -1601,8 +1875,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/status",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "status"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "status"
+                            ]
                         }
                     },
                     "response": []
@@ -1630,8 +1910,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/visibility",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "visibility"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "visibility"
+                            ]
                         }
                     },
                     "response": []
@@ -1650,8 +1936,14 @@
                         "description": "POST restore project from trash — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/restore",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "restore"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "restore"
+                            ]
                         }
                     },
                     "response": []
@@ -1670,8 +1962,13 @@
                         "description": "GET trashed projects — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-projects/trash",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-projects", "trash"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-projects",
+                                "trash"
+                            ]
                         }
                     },
                     "response": []
@@ -1690,8 +1987,14 @@
                         "description": "DELETE project permanently (force delete) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/force-delete",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "force-delete"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "force-delete"
+                            ]
                         }
                     },
                     "response": []
@@ -1710,8 +2013,13 @@
                         "description": "DELETE permanently empty the projects trash — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-projects/empty-trash",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-projects", "empty-trash"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-projects",
+                                "empty-trash"
+                            ]
                         }
                     },
                     "response": []
@@ -1730,8 +2038,14 @@
                         "description": "GET project stats — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/stats",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "stats"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "stats"
+                            ]
                         }
                     },
                     "response": []
@@ -1755,8 +2069,14 @@
                         "description": "GET project users — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/users",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "users"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "users"
+                            ]
                         }
                     },
                     "response": []
@@ -1784,8 +2104,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/users",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "users"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "users"
+                            ]
                         }
                     },
                     "response": []
@@ -1804,8 +2130,15 @@
                         "description": "POST leave project — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/users/leave",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "users", "leave"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "users",
+                                "leave"
+                            ]
                         }
                     },
                     "response": []
@@ -1833,7 +2166,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/users/{userId}/role",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -1859,7 +2194,9 @@
                         "description": "DELETE remove user from project — no body. The user to remove is identified by {userId} in the URL.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/users/{userId}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -1884,7 +2221,9 @@
                         "description": "POST transfer project ownership — no body. The new owner is identified by {userId} in the URL.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/users/transfer-ownership/{userId}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -1899,8 +2238,147 @@
             ]
         },
         {
+            "name": "ratings",
+            "item": [
+                {
+                    "name": "get-rating-stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET rating stats (count + average + 1-5 star distribution) for a user identified by {user} — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/users/{user}/ratings/stats",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "users",
+                                "{user}",
+                                "ratings",
+                                "stats"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "rate-project-member",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "POST rate a project member (only the project owner can rate; cannot rate self; user must be a member of the project). Body: rated_user_id (REQUIRED, must exist in users), rating (REQUIRED, integer, 1-5). Rating again in the same project updates the previous rating.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"rated_user_id\": 2,\n    \"rating\": 5\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/rate",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "rate"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "update-rating",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "PUT update (or create if absent) a rating for a project member. Same body and rules as POST /projects/{project}/rate: rated_user_id (REQUIRED, must exist in users), rating (REQUIRED, integer, 1-5).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"rated_user_id\": 2,\n    \"rating\": 4\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/rate",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "rate"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
             "name": "tasks",
             "item": [
+                {
+                    "name": "complete-task",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "POST mark a task as completed or incomplete. Only the project owner, a project manager, or the task assignee can do this. Body: completed (optional, boolean, default true — false marks the task incomplete again).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"completed\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/tasks/{task}/complete",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks",
+                                "{task}",
+                                "complete"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
                 {
                     "name": "get-assigned-tasks-kanban",
                     "request": {
@@ -1915,8 +2393,15 @@
                         "description": "GET all assigned tasks (assigned to any project user) grouped by status for Kanban view — no body. Returns data: [{ status: {id, name, position}, tasks: [...], tasks_count }], total_tasks.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/assigned-kanban",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "tasks", "assigned-kanban"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks",
+                                "assigned-kanban"
+                            ]
                         }
                     },
                     "response": []
@@ -1944,8 +2429,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "tasks"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks"
+                            ]
                         }
                     },
                     "response": []
@@ -1973,8 +2464,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "tasks"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks"
+                            ]
                         }
                     },
                     "response": []
@@ -1993,8 +2490,15 @@
                         "description": "GET single task — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "tasks", "{task}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks",
+                                "{task}"
+                            ]
                         }
                     },
                     "response": []
@@ -2022,8 +2526,15 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "tasks", "{task}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks",
+                                "{task}"
+                            ]
                         }
                     },
                     "response": []
@@ -2051,7 +2562,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/status",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2077,8 +2590,15 @@
                         "description": "DELETE task (soft delete / move to trash) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "tasks", "{task}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks",
+                                "{task}"
+                            ]
                         }
                     },
                     "response": []
@@ -2106,7 +2626,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/reorder",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2140,7 +2662,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{parentTask}/subtasks",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2166,7 +2690,9 @@
                         "description": "GET trashed tasks — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/trashed",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2191,7 +2717,9 @@
                         "description": "POST restore task from trash — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/restore",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2217,7 +2745,9 @@
                         "description": "DELETE task permanently — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/force-delete",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2243,7 +2773,9 @@
                         "description": "DELETE permanently empty the tasks trash — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/empty-trash",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2268,7 +2800,9 @@
                         "description": "GET completed tasks — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/completed",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2293,7 +2827,9 @@
                         "description": "GET tasks assigned to the current user — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/assigned",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2318,7 +2854,9 @@
                         "description": "GET unassigned tasks — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/unassigned",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2343,8 +2881,14 @@
                         "description": "POST create group task. Body: assigned_group_id (REQUIRED, must exist in groups), title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses).",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/group-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "group-tasks"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "group-tasks"
+                            ]
                         },
                         "body": {
                             "mode": "raw",
@@ -2372,8 +2916,15 @@
                         "description": "GET group tasks — no body. Optional query params: search, status_id, priority, sort_by, sort_direction.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/group-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "tasks", "group-tasks"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "tasks",
+                                "group-tasks"
+                            ]
                         }
                     },
                     "response": []
@@ -2392,7 +2943,9 @@
                         "description": "GET archived tasks — no body. Optional query params: search, sort_by, sort_direction.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/archived",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2417,7 +2970,9 @@
                         "description": "GET task history — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/history",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2443,7 +2998,9 @@
                         "description": "GET the transfer history of a task — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/transfer-history",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2478,7 +3035,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/transfer",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2504,8 +3063,12 @@
                         "description": "GET my kanban tasks (all tasks where the current user is assigned) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-kanban-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-kanban-tasks"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-kanban-tasks"
+                            ]
                         }
                     },
                     "response": []
@@ -2529,7 +3092,9 @@
                         "description": "GET task assignments — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/assignments",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2564,7 +3129,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/assignments",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2590,7 +3157,9 @@
                         "description": "DELETE unassign user from task — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/tasks/{task}/assignments/{userId}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2617,137 +3186,11 @@
                         "description": "GET my assigned tasks — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-assigned-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-assigned-tasks"]
-                        }
-                    },
-                    "response": []
-                }
-            ]
-        },
-        {
-            "name": "task-dependencies",
-            "item": [
-                {
-                    "name": "get-dependencies",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "description": "GET task dependencies — no body.",
-                        "url": {
-                            "raw": "{{baseURL}}/projects/{project}/tasks/{task}/dependencies",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
-                                "projects",
-                                "{project}",
-                                "tasks",
-                                "{task}",
-                                "dependencies"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "add-dependency",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "description": "POST add task dependency. Body: depends_on_task_id (REQUIRED, must exist in tasks), type (optional) [FS,SS,FF,SF], default FS.",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"depends_on_task_id\": 2,\n    \"type\": \"FS\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseURL}}/projects/{project}/tasks/{task}/dependencies",
-                            "host": ["{{baseURL}}"],
-                            "path": [
-                                "projects",
-                                "{project}",
-                                "tasks",
-                                "{task}",
-                                "dependencies"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "remove-dependency",
-                    "request": {
-                        "method": "DELETE",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "description": "DELETE task dependency — no body.",
-                        "url": {
-                            "raw": "{{baseURL}}/projects/{project}/tasks/{task}/dependencies/{dependsOnTaskId}",
-                            "host": ["{{baseURL}}"],
-                            "path": [
-                                "projects",
-                                "{project}",
-                                "tasks",
-                                "{task}",
-                                "dependencies",
-                                "{dependsOnTaskId}"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "update-dependency-type",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "description": "PUT update dependency type. Body MUST include depends_on_task_id (required, must exist in tasks — required by the request class even though it is also in the URL) plus type (optional) [FS,SS,FF,SF], default FS.",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"depends_on_task_id\": 2,\n    \"type\": \"FS\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseURL}}/projects/{project}/tasks/{task}/dependencies/{dependsOnTaskId}/type",
-                            "host": ["{{baseURL}}"],
-                            "path": [
-                                "projects",
-                                "{project}",
-                                "tasks",
-                                "{task}",
-                                "dependencies",
-                                "{dependsOnTaskId}",
-                                "type"
+                                "my-assigned-tasks"
                             ]
                         }
                     },
@@ -2759,25 +3202,31 @@
             "name": "task-statuses",
             "item": [
                 {
-    "name": "get-statuses",
-    "request": {
-        "method": "GET",
-        "header": [
-            {
-                "key": "Accept",
-                "value": "application/json",
-                "type": "text"
-            }
-        ],
-        "description": "GET task statuses — no body.",
-        "url": {
-            "raw": "{{baseURL}}/projects/{project}/statuses",
-            "host": ["{{baseURL}}"],
-            "path": ["projects", "{project}", "statuses"]
-        }
-    },
-    "response": []
-},
+                    "name": "get-statuses",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET task statuses — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/projects/{project}/statuses",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "statuses"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
                 {
                     "name": "create-status",
                     "request": {
@@ -2801,8 +3250,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/statuses",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "statuses"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "statuses"
+                            ]
                         }
                     },
                     "response": []
@@ -2821,7 +3276,9 @@
                         "description": "POST create default statuses (To Do / In Progress / Done) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/statuses/default",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2855,7 +3312,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/statuses/reorder",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2889,7 +3348,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/statuses/{taskStatus}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2914,7 +3375,9 @@
                         "description": "DELETE task status — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/statuses/{taskStatus}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -2931,6 +3394,30 @@
             "name": "comments",
             "item": [
                 {
+                    "name": "my-comments",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET all comments (both task and project comments) written by the current user — no body.",
+                        "url": {
+                            "raw": "{{baseURL}}/my-comments",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-comments"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "get-comments",
                     "request": {
                         "method": "GET",
@@ -2943,8 +3430,14 @@
                         ],
                         "url": {
                             "raw": "{{baseURL}}/tasks/{task}/comments",
-                            "host": ["{{baseURL}}"],
-                            "path": ["tasks", "{task}", "comments"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "tasks",
+                                "{task}",
+                                "comments"
+                            ]
                         }
                     },
                     "response": []
@@ -2962,8 +3455,15 @@
                         ],
                         "url": {
                             "raw": "{{baseURL}}/tasks/{task}/comments/{comment}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["tasks", "{task}", "comments", "{comment}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "tasks",
+                                "{task}",
+                                "comments",
+                                "{comment}"
+                            ]
                         }
                     },
                     "response": []
@@ -2990,8 +3490,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/tasks/{task}/comments",
-                            "host": ["{{baseURL}}"],
-                            "path": ["tasks", "{task}", "comments"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "tasks",
+                                "{task}",
+                                "comments"
+                            ]
                         }
                     },
                     "response": []
@@ -3018,8 +3524,15 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/tasks/{task}/comments/{comment}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["tasks", "{task}", "comments", "{comment}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "tasks",
+                                "{task}",
+                                "comments",
+                                "{comment}"
+                            ]
                         }
                     },
                     "response": []
@@ -3037,8 +3550,15 @@
                         ],
                         "url": {
                             "raw": "{{baseURL}}/tasks/{task}/comments/{comment}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["tasks", "{task}", "comments", "{comment}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "tasks",
+                                "{task}",
+                                "comments",
+                                "{comment}"
+                            ]
                         }
                     },
                     "response": []
@@ -3071,8 +3591,13 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/notifications/test",
-                            "host": ["{{baseURL}}"],
-                            "path": ["notifications", "test"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "notifications",
+                                "test"
+                            ]
                         }
                     },
                     "response": []
@@ -3091,8 +3616,12 @@
                         "description": "GET list of the caller's notifications — no body.",
                         "url": {
                             "raw": "{{baseURL}}/notifications",
-                            "host": ["{{baseURL}}"],
-                            "path": ["notifications"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "notifications"
+                            ]
                         }
                     },
                     "response": []
@@ -3111,8 +3640,14 @@
                         "description": "PUT mark a notification identified by {notification} as read — no body.",
                         "url": {
                             "raw": "{{baseURL}}/notifications/{notification}/read",
-                            "host": ["{{baseURL}}"],
-                            "path": ["notifications", "{notification}", "read"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "notifications",
+                                "{notification}",
+                                "read"
+                            ]
                         }
                     },
                     "response": []
@@ -3131,8 +3666,13 @@
                         "description": "PUT mark all of the caller's notifications as read — no body.",
                         "url": {
                             "raw": "{{baseURL}}/notifications/read-all",
-                            "host": ["{{baseURL}}"],
-                            "path": ["notifications", "read-all"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "notifications",
+                                "read-all"
+                            ]
                         }
                     },
                     "response": []
@@ -3151,8 +3691,13 @@
                         "description": "DELETE a notification identified by {notification} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/notifications/{notification}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["notifications", "{notification}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "notifications",
+                                "{notification}"
+                            ]
                         }
                     },
                     "response": []
@@ -3185,7 +3730,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/fcm/register",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "fcm",
                                 "register"
@@ -3217,7 +3764,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/fcm/unregister",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "fcm",
                                 "unregister"
@@ -3240,7 +3789,9 @@
                         "description": "GET list of the caller's registered FCM devices — no body.",
                         "url": {
                             "raw": "{{baseURL}}/fcm/tokens",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "fcm",
                                 "tokens"
@@ -3277,8 +3828,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/reports",
-                            "host": ["{{baseURL}}"],
-                            "path": ["reports"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "reports"
+                            ]
                         }
                     },
                     "response": []
@@ -3302,8 +3857,12 @@
                         "description": "GET search users and projects — query params only, no body. Query params: q (REQUIRED, string, min 2, max 100), limit (optional — accepts 'all' and '0' too), job_title (optional, string, max 100), location (optional, string, max 100), created_from (optional, date Y-m-d), created_to (optional, date Y-m-d), is_public_profile (optional, boolean), skills (optional, string, max 200), visibility (optional) [private,public], status (optional) [active,paused,completed], start_date_from (optional, date Y-m-d), start_date_to (optional, date Y-m-d), end_date_from (optional, date Y-m-d), end_date_to (optional, date Y-m-d), created_by (optional, integer, min 1).",
                         "url": {
                             "raw": "{{baseURL}}/search?q=8@",
-                            "host": ["{{baseURL}}"],
-                            "path": ["search"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "search"
+                            ],
                             "query": [
                                 {
                                     "key": "q",
@@ -3333,8 +3892,12 @@
                         "description": "GET list of the caller's favorite users — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorites",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-favorites"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-favorites"
+                            ]
                         }
                     },
                     "response": []
@@ -3362,8 +3925,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/my-favorites",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-favorites"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-favorites"
+                            ]
                         }
                     },
                     "response": []
@@ -3382,8 +3949,13 @@
                         "description": "DELETE a favorite user identified by {userId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorites/{userId}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-favorites", "{userId}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-favorites",
+                                "{userId}"
+                            ]
                         }
                     },
                     "response": []
@@ -3402,8 +3974,14 @@
                         "description": "POST toggle a user in favorites identified by {userId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorites/toggle/{userId}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-favorites", "toggle", "{userId}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-favorites",
+                                "toggle",
+                                "{userId}"
+                            ]
                         }
                     },
                     "response": []
@@ -3422,8 +4000,14 @@
                         "description": "GET check if a user identified by {userId} is in the caller's favorites — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorites/check/{userId}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-favorites", "check", "{userId}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-favorites",
+                                "check",
+                                "{userId}"
+                            ]
                         }
                     },
                     "response": []
@@ -3447,8 +4031,12 @@
                         "description": "GET list of the caller's favorite projects — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorite-projects",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-favorite-projects"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-favorite-projects"
+                            ]
                         }
                     },
                     "response": []
@@ -3476,8 +4064,12 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/my-favorite-projects",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-favorite-projects"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-favorite-projects"
+                            ]
                         }
                     },
                     "response": []
@@ -3496,8 +4088,13 @@
                         "description": "DELETE a favorite project identified by {projectId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorite-projects/{projectId}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-favorite-projects", "{projectId}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-favorite-projects",
+                                "{projectId}"
+                            ]
                         }
                     },
                     "response": []
@@ -3516,8 +4113,14 @@
                         "description": "POST toggle a project in favorites identified by {projectId} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorite-projects/toggle/{projectId}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-favorite-projects", "toggle", "{projectId}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-favorite-projects",
+                                "toggle",
+                                "{projectId}"
+                            ]
                         }
                     },
                     "response": []
@@ -3536,8 +4139,14 @@
                         "description": "GET check if a project identified by {projectId} is in the caller's favorites — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-favorite-projects/check/{projectId}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-favorite-projects", "check", "{projectId}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-favorite-projects",
+                                "check",
+                                "{projectId}"
+                            ]
                         }
                     },
                     "response": []
@@ -3561,8 +4170,14 @@
                         "description": "GET list of groups for a project — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "groups"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "groups"
+                            ]
                         }
                     },
                     "response": []
@@ -3581,7 +4196,9 @@
                         "description": "GET single group — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3606,7 +4223,9 @@
                         "description": "GET group members — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/members",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3632,7 +4251,9 @@
                         "description": "POST leave group — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/leave",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3667,8 +4288,14 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "groups"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "groups"
+                            ]
                         }
                     },
                     "response": []
@@ -3696,7 +4323,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3721,7 +4350,9 @@
                         "description": "DELETE group — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3755,7 +4386,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/members",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3781,7 +4414,9 @@
                         "description": "DELETE remove member from group — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/members/{userId}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3817,7 +4452,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/transfer-manager",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3843,7 +4480,9 @@
                         "description": "GET the manager of a group — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/manager",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3878,7 +4517,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/set-manager",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3904,8 +4545,12 @@
                         "description": "GET all groups where the current user is the manager — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-managed-groups",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-managed-groups"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-managed-groups"
+                            ]
                         }
                     },
                     "response": []
@@ -3924,8 +4569,12 @@
                         "description": "GET all groups where the current user is a member — no body.",
                         "url": {
                             "raw": "{{baseURL}}/my-groups",
-                            "host": ["{{baseURL}}"],
-                            "path": ["my-groups"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-groups"
+                            ]
                         }
                     },
                     "response": []
@@ -3954,7 +4603,9 @@
                         "description": "POST expel all members from a group (owner-only). Removes all members from the group and sets manager_id to null — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/expel-all-members",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -3990,7 +4641,9 @@
                         "description": "POST detach all tasks from a group (owner-only). Sets assigned_group_id to null — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/detach-tasks",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -4026,7 +4679,9 @@
                         "description": "GET tasks related to a group that have no status (not yet on the kanban board) — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/board",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -4062,7 +4717,9 @@
                         "description": "GET all tasks related to a group grouped by status for Kanban view — no body.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/kanban",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "projects",
                                 "{project}",
@@ -4088,8 +4745,16 @@
                         "description": "GET all completed group tasks for a specific group (tasks where assigned_group_id matches the group and completed_at is not null). Returns tasks ordered by completed_at desc.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/completed-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "groups", "{group}", "completed-tasks"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "groups",
+                                "{group}",
+                                "completed-tasks"
+                            ]
                         }
                     },
                     "response": []
@@ -4108,8 +4773,16 @@
                         "description": "GET all archived group tasks for a specific group (tasks where assigned_group_id matches the group and is_archived is true). Returns tasks ordered by updated_at desc.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/archived-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "groups", "{group}", "archived-tasks"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "groups",
+                                "{group}",
+                                "archived-tasks"
+                            ]
                         }
                     },
                     "response": []
@@ -4128,8 +4801,16 @@
                         "description": "GET group tasks that are assigned to at least one member of the group (tasks where assigned_group_id matches the group and assigned_to is a group member). Returns tasks ordered by created_at desc.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/assigned-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "groups", "{group}", "assigned-tasks"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "groups",
+                                "{group}",
+                                "assigned-tasks"
+                            ]
                         }
                     },
                     "response": []
@@ -4148,8 +4829,16 @@
                         "description": "GET group tasks that are NOT assigned to any member of the group (tasks where assigned_group_id matches the group but assigned_to is null or not a group member). Returns tasks ordered by created_at desc.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/unassigned-tasks",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "groups", "{group}", "unassigned-tasks"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "groups",
+                                "{group}",
+                                "unassigned-tasks"
+                            ]
                         }
                     },
                     "response": []
@@ -4168,8 +4857,17 @@
                         "description": "POST transfer group manager role to the user identified by {userId} in the URL. Alternative to the body-based transfer-manager endpoint. The new manager must be a current member of the group and not the project owner.",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/groups/{group}/transfer-manager/{userId}",
-                            "host": ["{{baseURL}}"],
-                            "path": ["projects", "{project}", "groups", "{group}", "transfer-manager", "{userId}"]
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{project}",
+                                "groups",
+                                "{group}",
+                                "transfer-manager",
+                                "{userId}"
+                            ]
                         }
                     },
                     "response": []
@@ -4202,7 +4900,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/chains/{chain}/projects",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "chains",
                                 "{chain}",
@@ -4226,7 +4926,9 @@
                         "description": "DELETE remove a project identified by {project} from a chain identified by {chain} — no body.",
                         "url": {
                             "raw": "{{baseURL}}/chains/{chain}/projects/{project}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "chains",
                                 "{chain}",
@@ -4260,7 +4962,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/chains/{chain}/reorder",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "chains",
                                 "{chain}",
@@ -4293,7 +4997,9 @@
                         },
                         "url": {
                             "raw": "{{baseURL}}/chains/{chain}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "chains",
                                 "{chain}"
@@ -4316,7 +5022,9 @@
                         "description": "POST transfer chain ownership — no body. The new owner id comes from the URL path {userId}; do NOT send it in the body.",
                         "url": {
                             "raw": "{{baseURL}}/chains/{chain}/transfer-ownership/{userId}",
-                            "host": ["{{baseURL}}"],
+                            "host": [
+                                "{{baseURL}}"
+                            ],
                             "path": [
                                 "chains",
                                 "{chain}",
@@ -4347,7 +5055,9 @@
                 "type": "text/javascript",
                 "packages": {},
                 "requests": {},
-                "exec": [""]
+                "exec": [
+                    ""
+                ]
             }
         },
         {
@@ -4356,7 +5066,9 @@
                 "type": "text/javascript",
                 "packages": {},
                 "requests": {},
-                "exec": [""]
+                "exec": [
+                    ""
+                ]
             }
         }
     ],
