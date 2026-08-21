@@ -5,6 +5,7 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FavoriteProject\AddFavoriteProjectRequest;
 use App\Http\Resources\FavoriteProjectResource;
+use App\Models\FavoriteProject;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,10 +14,10 @@ class FavoriteProjectController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $favorites = $request->user()
-            ->favoriteProjects()
-            ->with('creator')
-            ->latest('favorite_projects.created_at')
+        $favorites = FavoriteProject::where('user_id', $request->user()->id)
+            ->whereHas('project')
+            ->with('project.creator')
+            ->latest()
             ->get();
 
         return response()->json([

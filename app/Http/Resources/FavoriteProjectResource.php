@@ -12,7 +12,7 @@ class FavoriteProjectResource extends JsonResource
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
-            'project' => [
+            'project' => $this->project ? [
                 'id' => $this->project->id,
                 'name' => $this->project->name,
                 'description' => $this->project->description,
@@ -20,7 +20,7 @@ class FavoriteProjectResource extends JsonResource
                 'status' => $this->project->status,
                 'visibility' => $this->project->visibility,
                 'creator_name' => $this->project->creator?->name,
-            ],
+            ] : null,
             'created_at' => $this->created_at?->toISOString(),
         ];
     }
