@@ -16,9 +16,10 @@ class ProjectCommentResource extends JsonResource
             'content' => $this->content,
             'parent_id' => $this->parent_id,
             'user' => [
-                'id' => $this->user->id ?? null,
-                'name' => $this->user->name ?? 'Unknown',
-                'avatar' => $this->user->profile?->avatar ?? null,
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'avatar' => $this->user->profile?->avatar,
+                'deleted' => $this->user->deleted,
             ],
             'is_owner' => $this->user_id === ($request->user()?->id),
             'replies_count' => $this->replies->count(),

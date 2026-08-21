@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\api\Auth\DeleteAccountRequest;
 use App\Http\Requests\api\Auth\LoginRequest;
 use App\Http\Traits\ApiResponseTrait;
+use App\Services\AccountDeletionService;
 use App\Services\AuthService;
 use App\Services\VerificationCodeService;
 use Illuminate\Http\Request;
@@ -75,6 +77,15 @@ class LoginController extends Controller
             'is_active' => $user->is_active,
             'created_at' => $user->created_at,
             'email_verified_at' => $user->email_verified_at
+        ]);
+    }
+
+    public function destroy(DeleteAccountRequest $request, AccountDeletionService $service)
+    {
+        $service->deleteAccount($request->user(), $request->password);
+
+        return response()->json([
+            'message' => 'Account deleted successfully.',
         ]);
     }
 }

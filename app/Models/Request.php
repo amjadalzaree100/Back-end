@@ -23,12 +23,12 @@ class Request extends Model
 
     public function sender()
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return $this->belongsTo(User::class, 'sender_id')->withTrashed();
     }
 
     public function receiver()
     {
-        return $this->belongsTo(User::class, 'receiver_id');
+        return $this->belongsTo(User::class, 'receiver_id')->withTrashed();
     }
 
     public function project()
@@ -38,7 +38,7 @@ class Request extends Model
 
     public function responder()
     {
-        return $this->belongsTo(User::class, 'responded_by');
+        return $this->belongsTo(User::class, 'responded_by')->withTrashed();
     }
 
 public function scopePending(Builder $query): Builder

@@ -175,7 +175,7 @@ class TaskController extends Controller
      * Create a subtask under a parent task (either project parent or group parent).
      * Subtasks are always assignable and require at least one assignee.
      */
-    public function storeSubTask(StoreSubTaskRequest $request, Project $project, Group $group, Task $parentTask): JsonResponse
+    public function storeSubTask(StoreSubTaskRequest $request, Project $project, Task $parentTask): JsonResponse
     {
         $userId = $request->user()->id;
         $this->checkProjectManager($project);
@@ -185,13 +185,6 @@ class TaskController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Parent task does not belong to this project',
-            ], 404);
-        }
-
-        if ($parentTask->assigned_group_id !== $group->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Parent task does not belong to this group',
             ], 404);
         }
 

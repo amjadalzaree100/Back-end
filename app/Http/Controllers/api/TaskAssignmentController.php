@@ -200,15 +200,13 @@ class TaskAssignmentController extends Controller
             actor: $request->user(),
         );
 
+        $task->refresh();
+        $task->load(['status', 'assignee', 'assignedGroup', 'creator']);
+
         return response()->json([
             'success' => true,
             'message' => 'User assigned to task successfully',
-            'data' => [
-                'assigned_to' => $task->assignee ? [
-                    'id' => $task->assignee->id,
-                    'name' => $task->assignee->name,
-                ] : null,
-            ],
+            'data' => new TaskResource($task),
         ], 201);
     }
 

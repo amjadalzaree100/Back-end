@@ -15,6 +15,7 @@ class UserSearchResource extends JsonResource
             'username' => $this->username,
             'avatar' => $this->profile?->avatar,
             'job_title' => $this->profile?->job_title,
+            'deleted' => $this->deleted,
             'match_score' => $this->match_score ?? 0,
         ];
     }

@@ -18,10 +18,12 @@ class GroupMemberResource extends JsonResource
                 'email' => $this->user?->email,
                 'avatar' => $this->user?->profile?->avatar,
                 'job_title' => $this->user?->profile?->job_title,
+                'deleted' => $this->user?->deleted,
             ],
             'added_by' => [
                 'id' => $this->addedBy?->id,
                 'name' => $this->addedBy?->name,
+                'deleted' => $this->addedBy?->deleted,
             ],
             'joined_at' => $this->joined_at?->toISOString(),
             'created_at' => $this->created_at?->toISOString(),

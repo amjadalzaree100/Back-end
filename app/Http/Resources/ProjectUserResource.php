@@ -17,6 +17,7 @@ class ProjectUserResource extends JsonResource
                 'name' => $this->name,
                 'email' => $this->email,
                 'avatar' => $this->profile?->avatar,
+                'deleted' => $this->deleted,
             ],
             'role' => $this->pivot?->role ?? $this->role,
             'joined_at' => $this->pivot?->created_at?->toISOString() ?? $this->created_at?->toISOString(),
