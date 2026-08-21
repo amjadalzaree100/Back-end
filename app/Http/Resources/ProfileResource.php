@@ -113,11 +113,17 @@ class ProfileResource extends JsonResource
             'allow_messages' => $this->when($viewingOwn || $isOwner || $isPublic, $this->allow_messages),
             'allow_invitation_requests' => $this->when($viewingOwn || $isOwner  || $isPublic, $this->allow_invitation_requests),
 
-            'projects' => $this->when($viewingOwn || $isOwner || $isPublic, function () {
+            'projects' => $this->when($viewingOwn || $isOwner || $isPublic, function () use ($viewingOwn, $isOwner) {
                 $ownedProjects = $this->user->ownedProjects ?? collect();
                 $memberProjects = $this->user->projects ?? collect();
 
-                return $ownedProjects->merge($memberProjects)->unique('id')->map(function ($project) {
+                $projects = $ownedProjects->merge($memberProjects)->unique('id');
+
+                if (!$viewingOwn && !$isOwner) {
+                    $projects = $projects->where('visibility', 'public');
+                }
+
+                return $projects->map(function ($project) {
                     return [
                         'id' => $project->id,
                         'name' => $project->name,
