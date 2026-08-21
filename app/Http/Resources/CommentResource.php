@@ -18,6 +18,7 @@ class CommentResource extends JsonResource
                 'id' => $this->user->id ?? null,
                 'name' => $this->user->name ?? 'Unknown',
                 'avatar' => $this->user->profile?->avatar ?? null,
+                'deleted' => $this->user?->deleted ?? false,
             ],
             'is_owner' => $this->user_id === ($request->user()?->id),
             'created_at' => $this->created_at?->toISOString(),

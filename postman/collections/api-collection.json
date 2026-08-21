@@ -229,6 +229,35 @@
                     "response": []
                 },
                 {
+                    "name": "delete-account",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "DELETE the current authenticated user's account (soft-delete). Body: password (REQUIRED, string, must match current password). Blocks if user owns any projects. Per-role cleanup: manager (groups, tasks), user (tasks), observer (just leave). Personal data cleaned, profile reset, user soft-deleted.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"password\": \"your_current_password\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/me",
+                            "host": ["{{baseURL}}"],
+                            "path": ["me"]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "email-status",
                     "request": {
                         "method": "GET",
@@ -2099,10 +2128,10 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "POST create subtask. Body: title (required), description (optional), priority (optional) [low,medium,high,urgent], due_date (optional), status_id (optional, must exist in task_statuses), assigned_to (REQUIRED, integer) — must be a member of the parent task's group.",
+                        "description": "POST create subtask under any parent task. The subtask inherits assigned_group_id from the parent automatically (not provided by user). Body: title (REQUIRED, string, max 255), description (optional, nullable, string, max 5000), priority (optional) [low,medium,high,urgent], due_date (optional, date, after_or_equal:today), assigned_to (REQUIRED, integer, must exist in users) — if parent has a group, assignee must be a member of that group.",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"title\": \"Subtask\",\n    \"description\": \"Subtask of parent task\",\n    \"priority\": \"low\",\n    \"due_date\": \"2026-08-22\",\n    \"status_id\": 1,\n    \"assigned_to\": [2]\n}",
+                            "raw": "{\n    \"title\": \"Subtask\",\n    \"description\": \"Subtask of parent task\",\n    \"priority\": \"low\",\n    \"due_date\": \"2026-08-22\",\n    \"assigned_to\": 2\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -2110,13 +2139,11 @@
                             }
                         },
                         "url": {
-                            "raw": "{{baseURL}}/projects/{project}/groups/{group}/tasks/{parentTask}/subtasks",
+                            "raw": "{{baseURL}}/projects/{project}/tasks/{parentTask}/subtasks",
                             "host": ["{{baseURL}}"],
                             "path": [
                                 "projects",
                                 "{project}",
-                                "groups",
-                                "{group}",
                                 "tasks",
                                 "{parentTask}",
                                 "subtasks"

@@ -52,6 +52,6 @@ class TaskTransfer extends Model
 
     public function transferredBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'transferred_by');
+        return $this->belongsTo(User::class, 'transferred_by')->withTrashed();
     }
 }

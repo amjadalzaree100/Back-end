@@ -48,6 +48,14 @@ class GroupMemberController extends Controller
         $userId = $request->user()->id;
         $newMemberId = $request->user_id;
 
+        // Check if the user to be added is an observer in the project
+        if ($project->getUserRole($newMemberId) === 'observer') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Observers cannot be added to groups.'
+            ], 403);
+        }
+
         if (!$group->project->isOwner($userId) && !$group->isManager($userId)) {
             return response()->json([
                 'success' => false,

@@ -32,7 +32,7 @@ class ProjectReaction extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
     }
 
     public static function getReactionIcon(string $type): string

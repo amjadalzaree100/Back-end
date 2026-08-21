@@ -20,7 +20,7 @@ class AdminUserController extends Controller
     {
         $dateRange = DateRange::fromRequest($request);
 
-        $query = User::query();
+        $query = User::query()->withTrashed();
 
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
@@ -76,7 +76,7 @@ class AdminUserController extends Controller
 
     public function show($id)
     {
-        $user = User::with(['profile', 'projects', 'ownedProjects'])->findOrFail($id);
+        $user = User::withTrashed()->with(['profile', 'projects', 'ownedProjects'])->findOrFail($id);
 
         return view('admin.users.show', compact('user'));
     }
