@@ -229,6 +229,35 @@
                     "response": []
                 },
                 {
+                    "name": "delete-account",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "DELETE the current authenticated user's account (soft-delete). Body: password (REQUIRED, string, must match current password). Blocks if user owns any projects. Per-role cleanup: manager (groups, tasks), user (tasks), observer (just leave). Personal data cleaned, profile reset, user soft-deleted.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"password\": \"your_current_password\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseURL}}/me",
+                            "host": ["{{baseURL}}"],
+                            "path": ["me"]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "email-status",
                     "request": {
                         "method": "GET",
