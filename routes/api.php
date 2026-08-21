@@ -17,18 +17,18 @@ use App\Http\Controllers\api\NotificationController;
 use App\Http\Controllers\api\ProfileController;
 use App\Http\Controllers\api\ProjectCommentController;
 use App\Http\Controllers\api\ProjectController;
+use App\Http\Controllers\api\ProjectReactionController;
 use App\Http\Controllers\api\ProjectReportController;
 use App\Http\Controllers\api\ProjectUserController;
+use App\Http\Controllers\api\RatingController;
 use App\Http\Controllers\api\ReminderController;
 use App\Http\Controllers\api\ReportController;
-use App\Http\Controllers\api\RatingController;
 use App\Http\Controllers\api\RequestController;
 use App\Http\Controllers\api\SearchController;
 use App\Http\Controllers\api\TaskAssignmentController;
 use App\Http\Controllers\api\TaskController;
 use App\Http\Controllers\api\TaskStatusController;
 use Illuminate\Support\Facades\Route;
-
 
 // PUBLIC ROUTES (No authentication required)
 Route::post('/register', [RegisterController::class, 'register']);
@@ -111,8 +111,8 @@ Route::get('/my-tasks', [TaskController::class, 'myPendingTasks'])->middleware([
 // Project Reactions
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
     Route::prefix('projects/{project}/reactions')->group(function () {
-        Route::post('/toggle', [App\Http\Controllers\api\ProjectReactionController::class, 'toggleReaction']);
-        Route::get('/', [App\Http\Controllers\api\ProjectReactionController::class, 'getProjectReactions']);
+        Route::post('/toggle', [ProjectReactionController::class, 'toggleReaction']);
+        Route::get('/', [ProjectReactionController::class, 'getProjectReactions']);
     });
 });
 
@@ -122,7 +122,6 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     Route::put('/invitations/{invitation}/accept', [RequestController::class, 'acceptInvitation']);
     Route::put('/invitations/{invitation}/reject', [RequestController::class, 'rejectInvitation']);
 });
-
 
 //  join Requests
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
@@ -134,7 +133,6 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     });
 
 });
-
 
 // PROJECT COMMENTS ROUTES (only for public projects)
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
@@ -185,11 +183,11 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
 // PROJECTS ROUTES - Read only (always accessible)
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
     Route::get('/my-projects', [ProjectController::class, 'myProjects']);
+    Route::get('/my-chains', [ChainController::class, 'myChains']);
     Route::get('/projects/{project}', [ProjectController::class, 'show']);
     Route::patch('/projects/{project}/status', [ProjectController::class, 'updateStatus'])->name('projects.update.status');
     Route::patch('/projects/{project}/visibility', [ProjectController::class, 'updateVisibility']);
     Route::get('/projects/{project}/stats', [TaskController::class, 'getProjectStats']);
-
 
     // Trash routes
     Route::get('/my-projects/trash', [ProjectController::class, 'trashed']);
@@ -231,8 +229,6 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     Route::get('/projects/{project}/groups/{group}/assigned-tasks', [TaskController::class, 'getGroupAssignedTasks']);
     Route::get('/projects/{project}/groups/{group}/unassigned-tasks', [TaskController::class, 'getGroupUnassignedTasks']);
     Route::get('/projects/{project}/groups/{group}/kanban', [TaskController::class, 'getGroupKanban']);
-
-
 
 });
 
@@ -280,7 +276,6 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
     Route::get('/my-assigned-tasks', [TaskAssignmentController::class, 'myAssignedTasks']);
 });
 
-
 // NOTIFICATIONS ROUTES (always accessible)
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
     Route::prefix('notifications')->group(function () {
@@ -315,7 +310,6 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
         Route::get('/{comment}', [CommentController::class, 'show']);
     });
 });
-
 
 // ============= ROUTES INSIDE project.not.locked (Blocked when project is paused/completed) =============
 

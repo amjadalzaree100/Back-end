@@ -11,6 +11,7 @@ use App\Http\Resources\ProjectUserResource;
 use App\Models\Chain;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\ChainService;
 use App\Services\ProjectMemberCleanupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -430,24 +431,9 @@ class ProjectUserController extends Controller
             ], 500);
         }
     }
-    public function transferOwnership(Request $request, Project $project, int $userId): JsonResponse
+    public function transferOwnership(Request $request, Project $project, int $userId, ChainService $chainService): JsonResponse
     {
         $currentUserId = $request->user()->id;
-
-        if ($project->chains()->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This project belongs to a chain. You cannot transfer ownership of a single project. Please transfer the entire chain instead.',
-            ], 422);
-        }
-
-        if ($project->created_by !== $currentUserId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only the project owner can transfer ownership'
-            ], 403);
-        }
-
 
         if ($project->created_by !== $currentUserId) {
             return response()->json([
@@ -477,6 +463,15 @@ class ProjectUserController extends Controller
             $project->updateUserRole($userId, 'owner');
             $project->update(['created_by' => $userId]);
 
+            // Detach after the ownership update so the replacement "(Standalone)"
+            // chain is created under the new owner, who does not own the old chain.
+            $activeChain = $project->fresh()->activeChain();
+            $detachedFromChain = false;
+            if ($activeChain) {
+                $chainService->removeFromChain($activeChain->id, $project->id);
+                $detachedFromChain = true;
+            }
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -501,6 +496,7 @@ class ProjectUserController extends Controller
             'data' => [
                 'new_owner_id' => $userId,
                 'previous_owner_id' => $currentUserId,
+                'detached_from_chain' => $detachedFromChain,
             ]
         ]);
     }

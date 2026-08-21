@@ -34,6 +34,7 @@ class ProjectResource extends JsonResource
                 'reaction_counts' => $this->reaction_counts,
                 'user_reaction' => $this->when(request()->user(), fn() => $this->user_reaction),
                 'comments' => ProjectCommentResource::collection($this->whenLoaded('projectComments')),
+                'chain_id' => $this->whenLoaded('chains', fn () => $this->chains->first()?->id),
                 'chain' => $this->whenLoaded('chains', function () {
                     $chain = $this->chains->first();
                     return $chain ? [
@@ -77,6 +78,7 @@ class ProjectResource extends JsonResource
             'allow_commit' => $this->allow_commit,
             'allow_reactions' => $this->allow_reactions,
             'allow_join_requests' => $this->allow_join_requests,
+            'chain_id' => $this->whenLoaded('chains', fn () => $this->chains->first()?->id),
             'chain' => $this->whenLoaded('chains', function () {
                 $chain = $this->chains->first();
                 return $chain ? [
