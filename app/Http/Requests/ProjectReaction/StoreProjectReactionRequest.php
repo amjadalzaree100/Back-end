@@ -14,7 +14,7 @@ class StoreProjectReactionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'reaction_type' => 'required|string|in:like,love,dislike ',
+            'reaction_type' => 'required|string|in:like,love,dislike',
         ];
     }
 
