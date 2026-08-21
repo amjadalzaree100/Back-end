@@ -86,6 +86,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Fixed OTP
+    |--------------------------------------------------------------------------
+    |
+    | A fixed OTP that is always accepted for any email verification code
+    | flow (email verification, password reset, ...). Used for development
+    | and testing purposes.
+    |
+    */
+
+    'fixed_otp' => env('APP_FIXED_OTP', '123456'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

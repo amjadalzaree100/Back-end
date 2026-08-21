@@ -42,7 +42,7 @@ class EmailVerificationController extends Controller
         if ($wasAlreadyVerified) {
             return $this->successResponse(null, 'Email verified before. You can login.');
         }
-        if ($request->code != "123456") {
+        if ($request->code !== config('app.fixed_otp', '123456')) {
             return $this->errorResponse('Invalid or expired verification code.', 400);
         }
         $user->markEmailAsVerified();
