@@ -24,6 +24,8 @@ class ProfileResource extends JsonResource
                     'name' => $this->user->name,
                     'deleted' => $this->user->deleted,
                 ],
+                'ratings_count' => $this->user->ratings_count,
+                'ratings_average' => $this->user->ratings_average,
                 'is_active' => false,
                 'account_status' => 'deactivated',
                 'message' => __('messages.account_deactivated_other'), // أو النص الثابت
@@ -42,6 +44,8 @@ class ProfileResource extends JsonResource
                     'username' => $this->user->username,
                     'deleted' => $this->user->deleted,
                 ],
+                'ratings_count' => $this->user->ratings_count,
+                'ratings_average' => $this->user->ratings_average,
                 'blocked' => true,
                 'message' => 'You have been blocked by this user.',
             ];
@@ -59,6 +63,8 @@ class ProfileResource extends JsonResource
                     'username' => $this->user->username,
                     'deleted' => $this->user->deleted,
                 ],
+                'ratings_count' => $this->user->ratings_count,
+                'ratings_average' => $this->user->ratings_average,
                 'is_public' => $this->is_public,
                 'allow_messages' => $this->allow_messages,
                 'allow_invitation_requests' => $this->allow_invitation_requests,
@@ -126,6 +132,9 @@ class ProfileResource extends JsonResource
             'projects_count' => $this->when($viewingOwn || $isOwner || $isPublic, $this->projects_count),
             'tasks_completed' => $this->when($viewingOwn || $isOwner || $isPublic, $this->tasks_completed),
             'report_count' => $this->when($viewingOwn || $isOwner, $this->report_count),
+
+            'ratings_count' => $this->user->ratings_count,
+            'ratings_average' => $this->user->ratings_average,
 
             'is_active' => $this->user->is_active,
             'account_status' => $this->user->is_active ? 'active' : 'deactivated',

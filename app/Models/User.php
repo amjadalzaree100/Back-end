@@ -245,6 +245,29 @@ class User extends Authenticatable
         return Report::where('reported_user_id', $this->id)->count();
     }
 
+    public function ratingsGiven()
+    {
+        return $this->hasMany(Rating::class, 'rater_id');
+    }
+
+    public function ratingsReceived()
+    {
+        return $this->hasMany(Rating::class, 'rated_user_id');
+    }
+
+    public function getRatingsCountAttribute(): int
+    {
+        return $this->ratings_count ?? $this->ratingsReceived()->count();
+    }
+
+    public function getRatingsAverageAttribute(): float
+    {
+        return (float) round(
+            (float) $this->ratingsReceived()->avg('rating'),
+            2
+        );
+    }
+
     public function favorites()
     {
         return $this->hasMany(Favorite::class, 'user_id');

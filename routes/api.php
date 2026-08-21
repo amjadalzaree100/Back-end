@@ -21,6 +21,7 @@ use App\Http\Controllers\api\ProjectReportController;
 use App\Http\Controllers\api\ProjectUserController;
 use App\Http\Controllers\api\ReminderController;
 use App\Http\Controllers\api\ReportController;
+use App\Http\Controllers\api\RatingController;
 use App\Http\Controllers\api\RequestController;
 use App\Http\Controllers\api\SearchController;
 use App\Http\Controllers\api\TaskAssignmentController;
@@ -204,6 +205,16 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
         Route::get('/', [ProjectUserController::class, 'index']);
         Route::post('/leave', [ProjectUserController::class, 'leaveProject']);
     });
+});
+
+// RATINGS ROUTES
+Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
+    Route::get('/users/{user}/ratings/stats', [RatingController::class, 'show']);
+});
+
+Route::middleware(['auth:sanctum', 'is.active', 'verified', 'project.not.locked'])->group(function () {
+    Route::post('/projects/{project}/rate', [RatingController::class, 'rate']);
+    Route::put('/projects/{project}/rate', [RatingController::class, 'rate']);
 });
 
 // ============= GROUPS ROUTES - Read only =============
