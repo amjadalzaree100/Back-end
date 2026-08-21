@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProjectResource;
 use App\Models\Chain;
 use App\Models\Project;
 use App\Services\ChainService;
@@ -29,8 +30,59 @@ class ChainController extends Controller
                 'data' => $chains,
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to fetch chains: ' . $e->getMessage(), [
+            Log::error('Failed to fetch chains: '.$e->getMessage(), [
                 'user_id' => $request->user()->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load chains. Please try again later.',
+            ], 500);
+        }
+    }
+
+    public function myChains(Request $request)
+    {
+        $userId = $request->user()->id;
+
+        try {
+            $chains = Chain::with([
+                'projects' => function ($q) use ($userId) {
+                    $q->with(['creator', 'reactions'])
+                        ->withCount(['users', 'tasks'])
+                        ->with([
+                            'users' => function ($uq) use ($userId) {
+                                $uq->where('user_id', $userId)
+                                    ->select('users.id', 'project_users.role');
+                            },
+                        ]);
+                },
+            ])
+                ->withCount('projects')
+                ->where('created_by', $userId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            foreach ($chains as $chain) {
+                foreach ($chain->projects as $project) {
+                    $pivot = $project->users->first();
+                    $project->user_role = $pivot?->pivot->role ?? 'none';
+                    $project->is_owner = $project->created_by === $userId;
+                    $project->setRelation('chains', collect([$chain]));
+                }
+
+                $chain->projects = ProjectResource::collection($chain->projects);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $chains,
+                'total' => $chains->count(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch my chains: '.$e->getMessage(), [
+                'user_id' => $userId,
                 'trace' => $e->getTraceAsString(),
             ]);
 
@@ -51,7 +103,7 @@ class ChainController extends Controller
                 'data' => $chain,
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to fetch chain: ' . $e->getMessage(), [
+            Log::error('Failed to fetch chain: '.$e->getMessage(), [
                 'chain_id' => $chain->id,
                 'user_id' => $request->user()->id,
                 'trace' => $e->getTraceAsString(),
@@ -82,7 +134,7 @@ class ChainController extends Controller
                 'message' => 'Chain created successfully.',
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Failed to create chain: ' . $e->getMessage(), [
+            Log::error('Failed to create chain: '.$e->getMessage(), [
                 'user_id' => $request->user()->id,
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -93,7 +145,6 @@ class ChainController extends Controller
             ], 500);
         }
     }
-
 
     public function addProject(Request $request, Chain $chain)
     {
@@ -132,7 +183,7 @@ class ChainController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Failed to add project to chain: ' . $e->getMessage(), [
+            Log::error('Failed to add project to chain: '.$e->getMessage(), [
                 'chain_id' => $chain->id,
                 'user_id' => $request->user()->id,
                 'project_id' => $request->project_id ?? null,
@@ -152,7 +203,7 @@ class ChainController extends Controller
             $isChainCreator = $chain->created_by === $request->user()->id;
             $isProjectOwner = $project->created_by === $request->user()->id;
 
-            if (!$isChainCreator && !$isProjectOwner) {
+            if (! $isChainCreator && ! $isProjectOwner) {
                 return response()->json([
                     'success' => false,
                     'message' => 'You do not have permission to remove this project from the chain.',
@@ -172,7 +223,7 @@ class ChainController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Failed to remove project from chain: ' . $e->getMessage(), [
+            Log::error('Failed to remove project from chain: '.$e->getMessage(), [
                 'chain_id' => $chain->id,
                 'user_id' => $request->user()->id,
                 'project_id' => $project->id,
@@ -214,7 +265,7 @@ class ChainController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Failed to reorder chain: ' . $e->getMessage(), [
+            Log::error('Failed to reorder chain: '.$e->getMessage(), [
                 'chain_id' => $chain->id,
                 'user_id' => $request->user()->id,
                 'trace' => $e->getTraceAsString(),
@@ -254,7 +305,7 @@ class ChainController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Failed to update chain: ' . $e->getMessage(), [
+            Log::error('Failed to update chain: '.$e->getMessage(), [
                 'chain_id' => $chain->id,
                 'user_id' => $request->user()->id,
                 'trace' => $e->getTraceAsString(),
@@ -266,6 +317,4 @@ class ChainController extends Controller
             ], 500);
         }
     }
-
-
 }

@@ -2218,7 +2218,7 @@
                                 "type": "text"
                             }
                         ],
-                        "description": "POST transfer project ownership — no body. The new owner is identified by {userId} in the URL.",
+                        "description": "POST transfer project ownership to another project member — no body. The new owner is identified by {userId} in the URL. If the project belongs to a chain, it is automatically detached from that chain and moved into a new '(Standalone)' chain owned by the new owner (the previous chain is deleted if it becomes empty). Response data includes detached_from_chain (true/false).",
                         "url": {
                             "raw": "{{baseURL}}/projects/{project}/users/transfer-ownership/{userId}",
                             "host": [
@@ -4877,6 +4877,30 @@
         {
             "name": "chains",
             "item": [
+                {
+                    "name": "my-chains",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "description": "GET the authenticated user's owned chains (created_by = current user) with all their projects — no body. Each project includes its full info with chain_id. Chain ownership can be transferred via transfer-chain-ownership.",
+                        "url": {
+                            "raw": "{{baseURL}}/my-chains",
+                            "host": [
+                                "{{baseURL}}"
+                            ],
+                            "path": [
+                                "my-chains"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
                 {
                     "name": "add-project-to-chain",
                     "request": {
