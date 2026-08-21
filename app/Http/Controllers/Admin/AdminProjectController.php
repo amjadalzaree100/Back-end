@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Support\DateRange;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AdminProjectController extends Controller
 {
@@ -96,5 +98,61 @@ class AdminProjectController extends Controller
 
         return redirect()->route('admin.projects.index')
             ->with('success', "Project \"{$name}\" has been permanently deleted.");
+    }
+
+    /**
+     * Suspend a project (makes it read-only for all members).
+     */
+    public function suspend($id)
+    {
+        $project = Project::withTrashed()->findOrFail($id);
+        
+        if ($project->is_suspended) {
+            return redirect()->route('admin.projects.index')
+                ->with('error', "Project \"{$project->name}\" is already suspended.");
+        }
+
+        DB::beginTransaction();
+        try {
+            $project->update(['is_suspended' => true]);
+            DB::commit();
+
+            return redirect()->route('admin.projects.index')
+                ->with('success', "Project \"{$project->name}\" has been suspended.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to suspend project: ' . $e->getMessage());
+            
+            return redirect()->route('admin.projects.index')
+                ->with('error', "Failed to suspend project.");
+        }
+    }
+
+    /**
+     * Unsuspend a project (removes read-only restriction).
+     */
+    public function unsuspend($id)
+    {
+        $project = Project::withTrashed()->findOrFail($id);
+        
+        if (!$project->is_suspended) {
+            return redirect()->route('admin.projects.index')
+                ->with('error', "Project \"{$project->name}\" is not suspended.");
+        }
+
+        DB::beginTransaction();
+        try {
+            $project->update(['is_suspended' => false]);
+            DB::commit();
+
+            return redirect()->route('admin.projects.index')
+                ->with('success', "Project \"{$project->name}\" has been unsuspended.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to unsuspend project: ' . $e->getMessage());
+            
+            return redirect()->route('admin.projects.index')
+                ->with('error', "Failed to unsuspend project.");
+        }
     }
 }

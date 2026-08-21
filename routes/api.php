@@ -186,7 +186,7 @@ Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () 
 Route::middleware(['auth:sanctum', 'is.active', 'verified'])->group(function () {
     Route::get('/my-projects', [ProjectController::class, 'myProjects']);
     Route::get('/projects/{project}', [ProjectController::class, 'show']);
-    Route::patch('/projects/{project}/status', [ProjectController::class, 'updateStatus']);
+    Route::patch('/projects/{project}/status', [ProjectController::class, 'updateStatus'])->name('projects.update.status');
     Route::patch('/projects/{project}/visibility', [ProjectController::class, 'updateVisibility']);
     Route::get('/projects/{project}/stats', [TaskController::class, 'getProjectStats']);
 
