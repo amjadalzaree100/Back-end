@@ -27,6 +27,8 @@ class Project extends Model
         'description',
         'image',
         'status',
+        'owner_suspended',
+        'is_suspended',
         'visibility',
         'start_date',
         'end_date',
@@ -46,6 +48,8 @@ class Project extends Model
         'allow_join_requests' => 'boolean',
         'allow_commit' => 'boolean',
         'allow_reactions' => 'boolean',
+        'owner_suspended' => 'boolean',
+        'is_suspended' => 'boolean',
     ];
 
     protected $appends = [
@@ -167,6 +171,11 @@ class Project extends Model
         $role = $this->getUserRole($userId);
 
         return $role === 'owner' || $role === 'manager';
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->owner_suspended || $this->is_suspended;
     }
 
     public function getUsersCountAttribute(): int

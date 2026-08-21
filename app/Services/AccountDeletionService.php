@@ -5,12 +5,9 @@ namespace App\Services;
 use App\Events\ProjectNotificationEvent;
 use App\Models\BlockedUser;
 use App\Models\FcmToken;
-use App\Models\Group;
 use App\Models\Project;
-use App\Models\Task;
-use App\Models\TaskAssignmentHistory;
-use App\Models\TaskStatusHistory;
 use App\Models\User;
+use App\Services\ProjectMemberCleanupService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,6 +15,7 @@ class AccountDeletionService
 {
     public function __construct(
         private NotificationService $notificationService,
+        private ProjectMemberCleanupService $cleanupService,
     ) {}
 
     /**
@@ -93,58 +91,12 @@ class AccountDeletionService
 
     private function cleanupManagerRole(User $user, Project $project): void
     {
-        // Nullify groups managed by this user in this project
-        Group::where('project_id', $project->id)
-            ->where('manager_id', $user->id)
-            ->update(['manager_id' => null]);
-
-        // Detach tasks assigned to this user
-        $this->detachUserTasks($user, $project);
+        $this->cleanupService->cleanupManagerRole($user, $project);
     }
 
     private function cleanupUserRole(User $user, Project $project): void
     {
-        // Detach tasks assigned to this user
-        $this->detachUserTasks($user, $project);
-    }
-
-    private function detachUserTasks(User $user, Project $project): void
-    {
-        $tasks = Task::where('project_id', $project->id)
-            ->where('assigned_to', $user->id)
-            ->get();
-
-        foreach ($tasks as $task) {
-            $previousStatusId = $task->status_id;
-
-            // Record assignment history
-            TaskAssignmentHistory::create([
-                'task_id' => $task->id,
-                'user_id' => $user->id,
-                'assigned_by' => $user->id,
-                'action' => 'unassigned',
-                'assigned_at' => now(),
-            ]);
-
-            // Record status history (transition to null)
-            TaskStatusHistory::create([
-                'task_id' => $task->id,
-                'from_status_id' => $previousStatusId,
-                'to_status_id' => null,
-                'changed_by' => $user->id,
-                'changed_at' => now(),
-            ]);
-
-            // Update task (bypass model events so archived tasks can be updated)
-            $task->withoutEvents(function () use ($task) {
-                $task->update([
-                    'assigned_to' => null,
-                    'status_id' => null,
-                    'started_at' => null,
-                    'completed_at' => null,
-                ]);
-            });
-        }
+        $this->cleanupService->cleanupUserRole($user, $project);
     }
 
     private function cleanupPersonalData(User $user): void
