@@ -17,3 +17,5 @@ Schedule::call(function () {
 })->daily();
 
 Schedule::command('reminders:send-due-tasks')->hourly();
+
+Schedule::command('trash:purge --days=30')->daily();
